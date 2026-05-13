@@ -302,33 +302,33 @@
         "resolved": "8.0.1",
         "contentHash": "n1ZP7NM2Gkn/MgD8+eOT5MulMj6wfeQMNS2Pizvq5GHCZfjlFMXV2irQlQmJhwA2VABC57M0auudO89Iu2uRLg=="
       },
-      "hangfire.aspnetcore": {
+      "nexusforge.aspnetcore": {
         "type": "Project",
         "dependencies": {
-          "Hangfire.NetCore": "[1.0.0, )"
+          "NexusForge.NetCore": "[1.0.0, )"
         }
       },
-      "hangfire.core": {
+      "nexusforge.core": {
         "type": "Project",
         "dependencies": {
           "Cronos": "[0.11.1, )",
           "Newtonsoft.Json": "[13.0.3, )"
         }
       },
-      "hangfire.netcore": {
+      "nexusforge.netcore": {
         "type": "Project",
         "dependencies": {
-          "Hangfire.Core": "[1.0.0, )",
+          "NexusForge.Core": "[1.0.0, )",
           "Microsoft.Extensions.DependencyInjection.Abstractions": "[8.0.2, )",
           "Microsoft.Extensions.Hosting.Abstractions": "[8.0.1, )",
           "Microsoft.Extensions.Logging.Abstractions": "[8.0.2, )"
         }
       },
-      "hangfire.sqlserver": {
+      "nexusforge.sqlserver": {
         "type": "Project",
         "dependencies": {
           "Dapper": "[2.1.28, )",
-          "Hangfire.Core": "[1.0.0, )"
+          "NexusForge.Core": "[1.0.0, )"
         }
       }
     }

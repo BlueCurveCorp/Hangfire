@@ -2,7 +2,7 @@
 
 ## Summary
 
-Hangfire queues are currently global within a storage instance. If multiple tenants enqueue jobs to queue `a`, all jobs land in the same logical queue and any server configured for queue `a` can fetch them. This specification describes an opt-in multitenant queue model where queue identity includes a tenant scope.
+NexusForge queues are currently global within a storage instance. If multiple tenants enqueue jobs to queue `a`, all jobs land in the same logical queue and any server configured for queue `a` can fetch them. This specification describes an opt-in multitenant queue model where queue identity includes a tenant scope.
 
 With multitenant queues enabled, two tenants can both use queue name `a` while keeping their queued jobs distinct:
 
@@ -11,7 +11,7 @@ Tenant XYZ, Queue a
 Tenant ABC, Queue a
 ```
 
-A server can be configured to process queue `a` only for tenant `XYZ`, while another server processes queue `a` only for tenant `ABC`. Existing Hangfire behavior must remain unchanged unless multitenancy is explicitly enabled.
+A server can be configured to process queue `a` only for tenant `XYZ`, while another server processes queue `a` only for tenant `ABC`. Existing NexusForge behavior must remain unchanged unless multitenancy is explicitly enabled.
 
 ## Goals
 
@@ -29,11 +29,11 @@ A server can be configured to process queue `a` only for tenant `XYZ`, while ano
 
 - Do not enable multitenancy by default.
 - Do not break existing queue names, jobs, workers, or storage records.
-- Do not require every Hangfire deployment to define tenants.
+- Do not require every NexusForge deployment to define tenants.
 - Do not implement tenant billing or identity management.
-- Do not provide full tenant data isolation across every Hangfire entity in the first phase.
-- Do not guarantee full tenant data isolation across every Hangfire entity in the first phase.
-- Do not replace Hangfire's pull-based worker model.
+- Do not provide full tenant data isolation across every NexusForge entity in the first phase.
+- Do not guarantee full tenant data isolation across every NexusForge entity in the first phase.
+- Do not replace NexusForge's pull-based worker model.
 - Do not implement central scheduling or global resource accounting.
 
 ## Current Behavior
@@ -160,7 +160,7 @@ Behavior:
 Example:
 
 ```csharp
-services.AddHangfireServer(options =>
+services.AddNexusForgeServer(options =>
 {
     options.TenantId = "xyz";
     options.Queues =
@@ -174,7 +174,7 @@ services.AddHangfireServer(options =>
 Another node:
 
 ```csharp
-services.AddHangfireServer(options =>
+services.AddNexusForgeServer(options =>
 {
     options.TenantId = "abc";
     options.Queues =
@@ -209,7 +209,7 @@ BackgroundJob
 Possible scoped API:
 
 ```csharp
-using (HangfireTenantContext.Use("xyz"))
+using (NexusForgeTenantContext.Use("xyz"))
 {
     BackgroundJob.Enqueue(() => SendEmail());
 }
@@ -226,7 +226,7 @@ Recommended direction:
 Candidate API:
 
 ```csharp
-public static class HangfireTenantContext
+public static class NexusForgeTenantContext
 {
     public static IDisposable Use(string tenantId);
     public static string CurrentTenantId { get; }
@@ -242,9 +242,9 @@ Behavior:
 
 ### ASP.NET Core Tenant Provider
 
-Core Hangfire should remain based on explicit tenant APIs and `HangfireTenantContext`. ASP.NET Core integration should add a small tenant provider abstraction for applications that already resolve tenant identity per request.
+Core NexusForge should remain based on explicit tenant APIs and `NexusForgeTenantContext`. ASP.NET Core integration should add a small tenant provider abstraction for applications that already resolve tenant identity per request.
 
-Candidate API in `Hangfire.AspNetCore`:
+Candidate API in `NexusForge.AspNetCore`:
 
 ```csharp
 public interface ITenantIdProvider
@@ -266,7 +266,7 @@ Recommended behavior:
 
 - `ITenantIdProvider` is registered through ASP.NET Core dependency injection.
 - The provider is used by ASP.NET Core convenience APIs and filters only.
-- Core Hangfire does not depend on ASP.NET Core abstractions.
+- Core NexusForge does not depend on ASP.NET Core abstractions.
 - Explicit tenant APIs override provider-derived tenant ids.
 - Missing provider or null result means no tenant id unless an application-specific validation filter rejects it.
 - Provider output must pass the same tenant id validation rules as explicit APIs.
@@ -413,19 +413,19 @@ SQL Server storage requires a migration for production multitenant queue support
 Add nullable column:
 
 ```sql
-alter table [HangFire].JobQueue
+alter table [NexusForge].JobQueue
 add TenantId nvarchar(100) null;
 ```
 
 Recommended index direction:
 
 ```sql
-create index IX_HangFire_JobQueue_Tenant_QueueAndFetchedAt
-on [HangFire].JobQueue (TenantId, Queue, FetchedAt)
+create index IX_NexusForge_JobQueue_Tenant_QueueAndFetchedAt
+on [NexusForge].JobQueue (TenantId, Queue, FetchedAt)
 include (JobId);
 ```
 
-The exact index must be evaluated against current Hangfire SQL schema, dequeue query shape, and supported SQL Server versions.
+The exact index must be evaluated against current NexusForge SQL schema, dequeue query shape, and supported SQL Server versions.
 
 Compatibility:
 
@@ -616,7 +616,7 @@ where Queue in @queues
 
 and use `top (1)` without an explicit `order by` in the queue selection query. This means SQL Server does not provide a clear deterministic priority based on the order of `options.Queues`. Observed behavior may appear influenced by indexes, query plans, insertion order, or queue names, but it should not be treated as a stable priority contract.
 
-Some Hangfire documentation or older behavior may imply queue order or alphabetical behavior for specific storages. A multitenant queue design should not depend on ambiguous ordering.
+Some NexusForge documentation or older behavior may imply queue order or alphabetical behavior for specific storages. A multitenant queue design should not depend on ambiguous ordering.
 
 ### Priority Requirement
 
@@ -641,7 +641,7 @@ Priority semantics:
 - Priority values must be positive integers.
 - Priority is strict: a higher-priority queue is checked before a lower-priority queue.
 - If priorities are equal, use FIFO by queue row id as the deterministic tie-breaker.
-- Hangfire does not attempt automatic fairness across priority levels in the first implementation.
+- NexusForge does not attempt automatic fairness across priority levels in the first implementation.
 - Developers are responsible for choosing queue depth, worker count, and priority values that do not starve lower-priority work.
 - Because `Queues` changes from `string[]` to a dictionary-like type, this belongs in a major-version change.
 
@@ -887,7 +887,7 @@ Open question: whether cross-tenant continuations should be allowed. For the fir
 
 ### Batches
 
-Batch behavior depends on Hangfire edition/features and should be designed separately. The default expectation is that batch jobs preserve their tenant id like other jobs.
+Batch behavior depends on NexusForge edition/features and should be designed separately. The default expectation is that batch jobs preserve their tenant id like other jobs.
 
 ## Authorization And Isolation
 
@@ -935,7 +935,7 @@ If multitenant mode is expected by the application but no tenant id is present:
 - Default behavior remains global enqueue.
 - Applications that require tenants can add a client filter that rejects missing tenant ids.
 
-Hangfire should not globally require tenant ids unless configured to do so.
+NexusForge should not globally require tenant ids unless configured to do so.
 
 ### Tenant Id Mismatch
 
@@ -1110,7 +1110,7 @@ Recommended phases:
 - Production multitenant queue storage uses a real nullable `TenantId` column.
 - Encoded physical queue names are prototype-only and are not the public storage contract.
 - ASP.NET Core integration includes an `ITenantIdProvider` convenience abstraction.
-- Core Hangfire remains based on explicit tenant APIs and tenant context, not ASP.NET Core request abstractions.
+- Core NexusForge remains based on explicit tenant APIs and tenant context, not ASP.NET Core request abstractions.
 - Dashboard tenant authorization hooks are included in phase one.
 - The default dashboard behavior may still show all tenants to authorized dashboard users when no tenant authorization filter is registered.
 - Wildcard tenant servers are not supported.

@@ -1,0 +1,68 @@
+// This file is part of Hangfire. Copyright © 2022 NexusForge OÜ.
+// 
+// Hangfire is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Lesser General Public License as 
+// published by the Free Software Foundation, either version 3 
+// of the License, or any later version.
+// 
+// NexusForge is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU Lesser General Public License for more details.
+// 
+// You should have received a copy of the GNU Lesser General Public 
+// License along with Hangfire. If not, see <http://www.gnu.org/licenses/>.
+//
+//
+// This file is part of NexusForge, a fork of Hangfire.
+// NexusForge is licensed under the GNU Lesser General Public License v3 (or later).
+// See the LICENSE file in the project root for more information.
+
+using System;
+using System.Runtime.Serialization;
+using Newtonsoft.Json;
+
+namespace NexusForge.Common
+{
+    public sealed class TypeHelperSerializationBinder : SerializationBinder
+#if NETSTANDARD2_0 || NET10_0_OR_GREATER
+            , Newtonsoft.Json.Serialization.ISerializationBinder
+#endif
+    {
+        public override Type BindToType(string assemblyName, string typeName)
+        {
+            return TypeHelper.CurrentTypeResolver($"{typeName}, {assemblyName}");
+        }
+
+        public override void BindToName(Type serializedType, out string assemblyName, out string typeName)
+        {
+            assemblyName = null;
+            typeName = TypeHelper.CurrentTypeSerializer(serializedType);
+
+            if (typeName == null) return;
+
+            var delimiterIndex = GetAssemblyNameDelimiterIndex(typeName);
+
+            if (delimiterIndex >= 0)
+            {
+                assemblyName = typeName.Substring(delimiterIndex + 1).Trim();
+                typeName = typeName.Substring(0, delimiterIndex).Trim();
+            }
+        }
+
+        private static int GetAssemblyNameDelimiterIndex(string typeName)
+        {
+            var level = 0;
+
+            for (var index = 0; index < typeName.Length; index++)
+            {
+                var current = typeName[index];
+                if (current == '[') level++;
+                else if (current == ']') level--;
+                else if (current == ',' && level == 0) return index;
+            }
+
+            return -1;
+        }
+    }
+}

@@ -1,19 +1,24 @@
-Hangfire 
+NexusForge 
 =========
 
-[![Official Site](https://img.shields.io/badge/site-hangfire.io-blue.svg)](https://www.hangfire.io) [![Latest version](https://img.shields.io/nuget/v/Hangfire.svg?label=release)](https://www.nuget.org/packages?q=hangfire) [![Downloads](https://img.shields.io/nuget/dt/Hangfire.Core.svg)](https://www.nuget.org/packages/Hangfire.Core/) [![License LGPLv3](https://img.shields.io/badge/license-LGPLv3-green.svg)](https://www.gnu.org/licenses/lgpl-3.0.html) [![Coverity Scan](https://scan.coverity.com/projects/4423/badge.svg?flat=1)](https://scan.coverity.com/projects/hangfireio-hangfire)
+**This project is a fork of [Hangfire](https://github.com/HangfireIO/Hangfire).**
 
-## Build Status
+Hangfire is an incredibly easy way to perform fire-and-forget, delayed, and recurring background jobs in .NET applications. No Windows Service / Task Scheduler required.
 
-&nbsp; | `main` | `dev`
---- | --- | --- 
-**AppVeyor** | [![Windows Build Status](https://ci.appveyor.com/api/projects/status/70m632jkycqpnsp9/branch/main?svg=true)](https://ci.appveyor.com/project/HangfireIO/hangfire-525)  | [![Windows Build Status](https://ci.appveyor.com/api/projects/status/70m632jkycqpnsp9/branch/dev?svg=true)](https://ci.appveyor.com/project/HangfireIO/hangfire-525) 
+**Original project**  
+Copyright © 2013-2026 Hangfire OÜ.  
+Licensed under the [GNU Lesser General Public License v3 (or later)](https://github.com/HangfireIO/Hangfire/blob/main/LICENSE.md).
+
+---
+
+**Your own description / features / changes go here...**
+
 
 ## Overview
 
 Incredibly easy way to perform **fire-and-forget**, **delayed** and **recurring jobs** in **.NET applications**. CPU and I/O intensive, long-running and short-running jobs are supported. No Windows Service / Task Scheduler required. Backed by Redis, SQL Server, SQL Azure and MSMQ.
 
-Hangfire provides a unified programming model to handle background tasks in a **reliable way** and run them on shared hosting, dedicated hosting or in cloud. You can start with a simple setup and grow computational power for background jobs with time for these scenarios:
+NexusForge provides a unified programming model to handle background tasks in a **reliable way** and run them on shared hosting, dedicated hosting or in cloud. You can start with a simple setup and grow computational power for background jobs with time for these scenarios:
 
 - mass notifications/newsletters
 - batch import from xml, csv or json
@@ -27,37 +32,37 @@ Hangfire provides a unified programming model to handle background tasks in a **
 - database maintenance
 - *…and so on*
 
-Hangfire is a .NET alternative to [Resque](https://github.com/resque/resque), [Sidekiq](https://sidekiq.org), [delayed_job](https://github.com/collectiveidea/delayed_job), [Celery](https://www.celeryproject.org).
+NexusForge is a .NET alternative to [Resque](https://github.com/resque/resque), [Sidekiq](https://sidekiq.org), [delayed_job](https://github.com/collectiveidea/delayed_job), [Celery](https://www.celeryproject.org).
 
-![Hangfire Dashboard](https://www.hangfire.io/img/ui/dashboard-sm.png)
+![NexusForge Dashboard](https://www.nexusforge.io/img/ui/dashboard-sm.png)
 
 Installation
 -------------
 
-Hangfire is available as a NuGet package. You can install it using the NuGet Package Console window:
+NexusForge is available as a NuGet package. You can install it using the NuGet Package Console window:
 
 ```
-PM> Install-Package Hangfire
+PM> Install-Package NexusForge
 ```
 
-After installation, update your existing [OWIN Startup](https://www.asp.net/aspnet/overview/owin-and-katana/owin-startup-class-detection) file with the following lines of code. If you do not have this class in your project or don't know what is it, please read the [Quick start](https://docs.hangfire.io/en/latest/getting-started/index.html) guide to learn about how to install Hangfire.
+After installation, update your existing [OWIN Startup](https://www.asp.net/aspnet/overview/owin-and-katana/owin-startup-class-detection) file with the following lines of code. If you do not have this class in your project or don't know what is it, please read the [Quick start](https://docs.nexusforge.io/en/latest/getting-started/index.html) guide to learn about how to install NexusForge.
 
 ```csharp
 public void Configuration(IAppBuilder app)
 {
     GlobalConfiguration.Configuration.UseSqlServerStorage("<connection string or its name>");
     
-    app.UseHangfireServer();
-    app.UseHangfireDashboard();
+    app.UseNexusForgeServer();
+    app.UseNexusForgeDashboard();
 }
 ```
 
 Usage
 ------
 
-This is an incomplete list of features; to see all of them, check the [official site](https://www.hangfire.io) and the [documentation](https://docs.hangfire.io).
+This is an incomplete list of features; to see all of them, check the [official site](https://www.nexusforge.io) and the [documentation](https://docs.nexusforge.io).
 
-[**Fire-and-forget tasks**](https://docs.hangfire.io/en/latest/background-methods/calling-methods-in-background.html)
+[**Fire-and-forget tasks**](https://docs.nexusforge.io/en/latest/background-methods/calling-methods-in-background.html)
 
 Dedicated worker pool threads execute queued background jobs as soon as possible, shortening your request's processing time.
 
@@ -65,7 +70,7 @@ Dedicated worker pool threads execute queued background jobs as soon as possible
 BackgroundJob.Enqueue(() => Console.WriteLine("Simple!"));
 ```
 
-[**Delayed tasks**](https://docs.hangfire.io/en/latest/background-methods/calling-methods-with-delay.html)
+[**Delayed tasks**](https://docs.nexusforge.io/en/latest/background-methods/calling-methods-with-delay.html)
 
 Scheduled background jobs are executed only after a given amount of time.
 
@@ -73,7 +78,7 @@ Scheduled background jobs are executed only after a given amount of time.
 BackgroundJob.Schedule(() => Console.WriteLine("Reliable!"), TimeSpan.FromDays(7));
 ```
 
-[**Recurring tasks**](https://docs.hangfire.io/en/latest/background-methods/performing-recurrent-tasks.html)
+[**Recurring tasks**](https://docs.nexusforge.io/en/latest/background-methods/performing-recurrent-tasks.html)
 
 Recurring jobs have never been simpler; just call the following method to perform any kind of recurring task using the [CRON expressions](https://en.wikipedia.org/wiki/Cron#CRON_expression).
 
@@ -92,10 +97,10 @@ BackgroundJob.ContinueWith(id, () => Console.WriteLine("world!"));
 
 **Process background tasks inside a web application…**
 
-You can process background tasks in any OWIN-compatible application framework, including [ASP.NET MVC](https://www.asp.net/mvc), [ASP.NET Web API](https://www.asp.net/web-api), [FubuMvc](https://fubu-project.org), [Nancy](https://nancyfx.org), etc. Forget about [AppDomain unloads, Web Garden & Web Farm issues](https://haacked.com/archive/2011/10/16/the-dangers-of-implementing-recurring-background-tasks-in-asp-net.aspx/) – Hangfire is reliable for web applications from scratch, even on shared hosting.
+You can process background tasks in any OWIN-compatible application framework, including [ASP.NET MVC](https://www.asp.net/mvc), [ASP.NET Web API](https://www.asp.net/web-api), [FubuMvc](https://fubu-project.org), [Nancy](https://nancyfx.org), etc. Forget about [AppDomain unloads, Web Garden & Web Farm issues](https://haacked.com/archive/2011/10/16/the-dangers-of-implementing-recurring-background-tasks-in-asp-net.aspx/) – NexusForge is reliable for web applications from scratch, even on shared hosting.
 
 ```csharp
-app.UseHangfireServer();
+app.UseNexusForgeServer();
 ```
 
 **… or anywhere else**
@@ -105,7 +110,7 @@ In console applications, Windows Service, Azure Worker Role, etc.
 ```csharp
 using (new BackgroundJobServer())
 {
-    Console.WriteLine("Hangfire Server started. Press ENTER to exit...");
+    Console.WriteLine("NexusForge Server started. Press ENTER to exit...");
     Console.ReadLine();
 }
 ```
@@ -114,7 +119,7 @@ using (new BackgroundJobServer())
 
 Background servers can be made aware of local capacity. When a server is resource constrained or intentionally draining, it stays alive, keeps heartbeating, remains visible in monitoring and lets already fetched jobs finish normally, but workers stop fetching new jobs until capacity returns.
 
-Resource awareness is opt-in and backward compatible. Applications that do not configure `BackgroundJobServerOptions.Resource` keep the existing Hangfire behavior.
+Resource awareness is opt-in and backward compatible. Applications that do not configure `BackgroundJobServerOptions.Resource` keep the existing NexusForge behavior.
 
 The feature includes:
 
@@ -138,7 +143,7 @@ resource.CapacityReporter(
     computeCapacity: async () => await localCapacityProbe.CanAcceptMoreJobs(),
     interval: TimeSpan.FromSeconds(5));
 
-services.AddHangfireServer(options =>
+services.AddNexusForgeServer(options =>
 {
     options.Resource = resource;
 });
@@ -160,7 +165,7 @@ var options = new BackgroundJobServerOptions
 
 using (new BackgroundJobServer(options))
 {
-    Console.WriteLine("Hangfire Server started. Press ENTER to exit...");
+    Console.WriteLine("NexusForge Server started. Press ENTER to exit...");
     Console.ReadLine();
 }
 ```
@@ -187,13 +192,13 @@ resource.ResumeQueue("video-transcoding");
 Allow authorized dashboard users to request drain and resume from the Servers page:
 
 ```csharp
-app.UseHangfireDashboard("/hangfire", new DashboardOptions
+app.UseNexusForgeDashboard("/nexusforge", new DashboardOptions
 {
     ResourceCommandAuthorization = context =>
     {
         var user = context.GetHttpContext().User;
         return user.Identity?.IsAuthenticated == true &&
-               user.IsInRole("Hangfire Operators");
+               user.IsInRole("NexusForge Operators");
     }
 });
 ```
@@ -201,7 +206,7 @@ app.UseHangfireDashboard("/hangfire", new DashboardOptions
 For Kubernetes or other orchestrators, enter drain mode on host shutdown before the server stops:
 
 ```csharp
-services.AddHangfireServer(options =>
+services.AddNexusForgeServer(options =>
 {
     options.Resource = resource;
     options.DrainOnApplicationStopping = true;
@@ -298,14 +303,14 @@ using (var connection = JobStorage.Current.GetConnection())
 
 **Priority-aware and multitenant queues**
 
-Hangfire queues can now be declared with explicit priorities, and SQL Server storage can keep queue identity separate per tenant. This is opt-in: when no `TenantId` is configured, jobs continue to use the existing global queue namespace.
+NexusForge queues can now be declared with explicit priorities, and SQL Server storage can keep queue identity separate per tenant. This is opt-in: when no `TenantId` is configured, jobs continue to use the existing global queue namespace.
 
 The feature includes:
 
 - `BackgroundJobServerOptions.Queues` as a priority-aware `QueuePriorityCollection`.
 - Deterministic SQL Server dequeue ordering by queue priority, then `JobQueue.Id`.
 - Optional `BackgroundJobServerOptions.TenantId` for one-tenant-per-server workers.
-- `HangfireTenantContext` for flowing tenant id through async job creation.
+- `NexusForgeTenantContext` for flowing tenant id through async job creation.
 - Tenant-aware `EnqueuedState.TenantId` for explicit job creation.
 - SQL Server `JobQueue.TenantId` storage, where `NULL` means the legacy global queue namespace.
 - Server and queue-availability monitoring fields that include tenant scope.
@@ -315,7 +320,7 @@ The feature includes:
 Declare queue priorities for a global server:
 
 ```csharp
-services.AddHangfireServer(options =>
+services.AddNexusForgeServer(options =>
 {
     options.Queues = new QueuePriorityCollection
     {
@@ -329,7 +334,7 @@ services.AddHangfireServer(options =>
 Run one server for tenant `xyz` and the same logical queues:
 
 ```csharp
-services.AddHangfireServer(options =>
+services.AddNexusForgeServer(options =>
 {
     options.TenantId = "xyz";
     options.Queues = new QueuePriorityCollection
@@ -343,7 +348,7 @@ services.AddHangfireServer(options =>
 Run another server for tenant `abc` with the same queue names, without sharing jobs with `xyz`:
 
 ```csharp
-services.AddHangfireServer(options =>
+services.AddNexusForgeServer(options =>
 {
     options.TenantId = "abc";
     options.Queues = new QueuePriorityCollection
@@ -357,7 +362,7 @@ services.AddHangfireServer(options =>
 Enqueue jobs for the current tenant with a scoped tenant context:
 
 ```csharp
-using (HangfireTenantContext.Use("xyz"))
+using (NexusForgeTenantContext.Use("xyz"))
 {
     BackgroundJob.Enqueue(() => SendWelcomeEmail(userId));
 }
@@ -381,7 +386,7 @@ Global jobs keep working as before and are fetched only by global servers:
 ```csharp
 BackgroundJob.Enqueue(() => RebuildSearchIndex());
 
-services.AddHangfireServer(options =>
+services.AddNexusForgeServer(options =>
 {
     options.Queues = new QueuePriorityCollection
     {
@@ -395,7 +400,7 @@ The same queue name can safely exist in both global and tenant scopes:
 ```csharp
 BackgroundJob.Enqueue(() => SendGlobalDigest());
 
-using (HangfireTenantContext.Use("xyz"))
+using (NexusForgeTenantContext.Use("xyz"))
 {
     BackgroundJob.Enqueue(() => SendTenantDigest("xyz"));
 }
@@ -425,8 +430,8 @@ SQL Server storage can now acquire distributed locks in either global or tenant 
 Tenant-scoped locks use the same SQL Server application lock primitive (`sp_getapplock`), but format the resource with tenant identity:
 
 ```text
-Global: HangFire:<resource>
-Tenant: HangFire:tenant:<tenantId>:<resource>
+Global: NexusForge:<resource>
+Tenant: NexusForge:tenant:<tenantId>:<resource>
 ```
 
 This means two tenants can run the same tenant-owned critical section independently, while two workers for the same tenant still serialize on the same logical resource. Storage-wide locks such as delayed-job scheduling, expiration cleanup, schema maintenance, recurring-job scheduling and shared list/set/hash locks remain global.
@@ -438,7 +443,7 @@ Tenant-aware distributed locks include:
 - Deterministic SHA-256 suffixes for long SQL Server application lock resource names.
 - Fail-closed fallback behavior when a storage provider does not support tenant-aware locks.
 - `DisableConcurrentExecutionAttribute` lock-scope options for tenant-owned jobs.
-- Worker-side `HangfireTenantContext` setup for servers configured with `BackgroundJobServerOptions.TenantId`.
+- Worker-side `NexusForgeTenantContext` setup for servers configured with `BackgroundJobServerOptions.TenantId`.
 
 By default, `DisableConcurrentExecutionAttribute` remains global:
 
@@ -449,7 +454,7 @@ public class ReportJobs
     public void RebuildSharedIndex()
     {
         // Still uses the global resource:
-        // HangFire:ReportJobs.RebuildSharedIndex
+        // NexusForge:ReportJobs.RebuildSharedIndex
     }
 }
 ```
@@ -466,10 +471,10 @@ GlobalConfiguration.Configuration
     });
 ```
 
-Run tenant-specific workers so Hangfire can set `HangfireTenantContext.CurrentTenantId` while performing jobs and server filters:
+Run tenant-specific workers so NexusForge can set `NexusForgeTenantContext.CurrentTenantId` while performing jobs and server filters:
 
 ```csharp
-services.AddHangfireServer(options =>
+services.AddNexusForgeServer(options =>
 {
     options.TenantId = "tenant-a";
     options.Queues = new QueuePriorityCollection
@@ -488,8 +493,8 @@ public class TenantReportJobs
     [DisableConcurrentExecution(timeoutInSeconds: 120)]
     public void GenerateMonthlyReport()
     {
-        // tenant-a: HangFire:tenant:tenant-a:TenantReportJobs.GenerateMonthlyReport
-        // tenant-b: HangFire:tenant:tenant-b:TenantReportJobs.GenerateMonthlyReport
+        // tenant-a: NexusForge:tenant:tenant-a:TenantReportJobs.GenerateMonthlyReport
+        // tenant-b: NexusForge:tenant:tenant-b:TenantReportJobs.GenerateMonthlyReport
     }
 }
 ```
@@ -519,7 +524,7 @@ public class TenantImportJobs
         Scope = DistributedLockScope.Tenant)]
     public void ImportCustomers()
     {
-        // Requires HangfireTenantContext.CurrentTenantId during performance.
+        // Requires NexusForgeTenantContext.CurrentTenantId during performance.
     }
 }
 ```
@@ -536,7 +541,7 @@ public class ExportJobs
     public void ExportAccount(string accountId)
     {
         // For tenant-a and account 42:
-        // HangFire:tenant:tenant-a:exports:42
+        // NexusForge:tenant:tenant-a:exports:42
     }
 }
 ```
@@ -606,7 +611,7 @@ using (var transaction = connection.CreateWriteTransaction())
 For tenant-owned job creation paths, set the ambient tenant context explicitly so the job is enqueued for the intended tenant. Tenant workers configured with the same `TenantId` will set the context again while the job is performed:
 
 ```csharp
-using (HangfireTenantContext.Use("tenant-a"))
+using (NexusForgeTenantContext.Use("tenant-a"))
 {
     BackgroundJob.Enqueue(() => RunTenantOwnedJob());
 }
@@ -619,14 +624,14 @@ Questions? Problems?
 
 Open-source projects develop more smoothly when discussions are public.
 
-If you have any questions, problems related to Hangfire usage or if you want to discuss new features, please visit the [discussion forum](https://discuss.hangfire.io). You can sign in there using your existing Google or GitHub account, so it's very simple to start using it.
+If you have any questions, problems related to NexusForge usage or if you want to discuss new features, please visit the [discussion forum](https://discuss.nexusforge.io). You can sign in there using your existing Google or GitHub account, so it's very simple to start using it.
 
-If you've discovered a bug, please report it to the [Hangfire GitHub Issues](https://github.com/HangfireIO/Hangfire/issues?state=open). Detailed reports with stack traces, actual and expected behaviours are welcome.
+If you've discovered a bug, please report it to the [NexusForge GitHub Issues](https://github.com/NexusForgeIO/NexusForge/issues?state=open). Detailed reports with stack traces, actual and expected behaviours are welcome.
 
 Related Projects
 -----------------
 
-Please see the [Extensions](https://www.hangfire.io/extensions.html) page on the official site.
+Please see the [Extensions](https://www.nexusforge.io/extensions.html) page on the official site.
 
 Building the sources
 ---------------------
@@ -635,10 +640,10 @@ Prerequisites:
 * [Razor Generator](https://marketplace.visualstudio.com/items?itemName=DavidEbbo.RazorGenerator): Required if you intend to edit the cshtml files.
 * Install the MSMQ service (Microsoft Message Queue Server), if not already installed.
 
-Then, create an environment variable with Variable name `Hangfire_SqlServer_ConnectionStringTemplate` and put your connection string in the Variable value field. Example:
+Then, create an environment variable with Variable name `NexusForge_SqlServer_ConnectionStringTemplate` and put your connection string in the Variable value field. Example:
 
-* Variable name: `Hangfire_SqlServer_ConnectionStringTemplate`
-* Variable value: `Data Source=.\sqlexpress;Initial Catalog=Hangfire.SqlServer.Tests;Integrated Security=True;`
+* Variable name: `NexusForge_SqlServer_ConnectionStringTemplate`
+* Variable value: `Data Source=.\sqlexpress;Initial Catalog=NexusForge.SqlServer.Tests;Integrated Security=True;`
 
 To build a solution and get assembly files, just run the following command. All build artifacts, including `*.pdb` files, will be placed into the `build` folder. **Before proposing a pull request, please use this command to ensure everything is ok.** Btw, you can execute this command from the Package Manager Console window.
 
@@ -658,14 +663,17 @@ To see the full list of available commands, pass the `-docs` switch:
 build -docs
 ```
 
-Hangfire uses [psake](https://github.com/psake/psake) build automation tool. All psake tasks and functions defined in `psake-build.ps1` (for this project) and `psake-common.ps1` (for other Hangfire projects) files. Thanks to the psake project, they are very simple to use and modify!
+NexusForge uses [psake](https://github.com/psake/psake) build automation tool. All psake tasks and functions defined in `psake-build.ps1` (for this project) and `psake-common.ps1` (for other NexusForge projects) files. Thanks to the psake project, they are very simple to use and modify!
 
 Razor templates are compiled upon save with the [Razor Generator Visual Studio extension](https://marketplace.visualstudio.com/items?itemName=DavidEbbo.RazorGenerator).  You will need this installed if you want to modify the Dashboard UI.
 
 Reporting security issues 
 --------------------------
 
-In order to give the community time to respond and upgrade we strongly urge you report all security issues privately. Please email us at [security@hangfire.io](mailto:security@hangfire.io) with details and we will respond ASAP. Security issues always take precedence over bug fixes and feature work. We can and do mark releases as "urgent" if they contain serious security fixes. 
+In order to give the community time to respond and upgrade we strongly urge you report all security issues privately. Please email us at [security@nexusforge.io](mailto:security@nexusforge.io) with details and we will respond ASAP. Security issues always take precedence over bug fixes and feature work. We can and do mark releases as "urgent" if they contain serious security fixes. 
+
+
+---
 
 License
 --------
@@ -688,7 +696,7 @@ along with this program.  If not, see [https://www.gnu.org/licenses/](https://ww
 Legal
 ------
 
-By submitting a Pull Request, you disavow any rights or claims to any changes submitted to the Hangfire project and assign the copyright of those changes to Hangfire OÜ.
+By submitting a Pull Request, you disavow any rights or claims to any changes submitted to the NexusForge project and assign the copyright of those changes to NexusForge.
 
 If you cannot or do not want to reassign those rights (your employment contract for your employer may not allow this), you should not submit a PR. Open an issue and someone else can do the work.
 

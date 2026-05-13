@@ -2,7 +2,7 @@
 
 ## Summary
 
-Hangfire currently uses a pull-based worker model: each `BackgroundJobServer` announces itself, starts worker threads, and those workers fetch jobs from shared queues when they are ready. The first version of resource awareness should preserve that model and add an opt-in capacity gate for each server.
+NexusForge currently uses a pull-based worker model: each `BackgroundJobServer` announces itself, starts worker threads, and those workers fetch jobs from shared queues when they are ready. The first version of resource awareness should preserve that model and add an opt-in capacity gate for each server.
 
 When a server reports that it has no capacity, its workers remain alive but stop fetching new jobs. The server continues to heartbeat and remains visible in monitoring. When capacity returns, workers resume fetching jobs normally. Existing deployments keep the current behavior when no resource provider is configured.
 
@@ -11,7 +11,7 @@ When a server reports that it has no capacity, its workers remain alive but stop
 - Allow applications hosting `BackgroundJobServer` to report whether the local node can accept more jobs.
 - Prevent workers on a saturated node from fetching and reserving additional jobs.
 - Expose each server's latest capacity state through existing server metadata and monitoring.
-- Preserve existing Hangfire behavior by default.
+- Preserve existing NexusForge behavior by default.
 - Avoid a SQL schema migration for the first version.
 
 ## Non-Goals
@@ -23,7 +23,7 @@ When a server reports that it has no capacity, its workers remain alive but stop
 
 ## Public API
 
-Add a new public interface in `Hangfire.Core`:
+Add a new public interface in `NexusForge.Core`:
 
 ```csharp
 public interface IJobServerResource
@@ -87,9 +87,9 @@ Timer behavior:
 
 Extend existing server metadata without changing the SQL schema:
 
-- Add `CanAllocate` to `Hangfire.Server.ServerContext`.
+- Add `CanAllocate` to `NexusForge.Server.ServerContext`.
 - Add `CanAllocate` to SQL Server's serialized `ServerData`.
-- Add `CanAllocate` to `Hangfire.Storage.Monitoring.ServerDto`.
+- Add `CanAllocate` to `NexusForge.Storage.Monitoring.ServerDto`.
 - Persist the value in the existing serialized `Server.Data` JSON.
 - Treat older server records that do not contain the field as available.
 
@@ -107,7 +107,7 @@ Dashboard behavior:
 
 ## .NET Core Integration
 
-The existing `AddHangfireServer` paths should pass through `BackgroundJobServerOptions.Resource` without additional registration requirements.
+The existing `AddNexusForgeServer` paths should pass through `BackgroundJobServerOptions.Resource` without additional registration requirements.
 
 Typical usage:
 
@@ -118,7 +118,7 @@ resource.CapacityReporter(
     computeCapacity: async () => await localCapacityProbe.CanAcceptMoreJobs(),
     interval: TimeSpan.FromSeconds(5));
 
-services.AddHangfireServer(options =>
+services.AddNexusForgeServer(options =>
 {
     options.Resource = resource;
 });
@@ -165,13 +165,13 @@ SQL Server tests:
 
 Integration checks:
 
-- Build `Hangfire.Core`, `Hangfire.SqlServer`, `Hangfire.NetCore`, and `Hangfire.AspNetCore`.
+- Build `NexusForge.Core`, `NexusForge.SqlServer`, `NexusForge.NetCore`, and `NexusForge.AspNetCore`.
 - Run focused xUnit tests for server options, worker behavior, capacity reporting, server metadata, and SQL Server monitoring.
 
 ## Assumptions
 
 - Boolean capacity is sufficient for the first version.
-- Hangfire's pull-based worker model remains the dispatch mechanism.
+- NexusForge's pull-based worker model remains the dispatch mechanism.
 - Resource awareness is local to each server.
 - `WorkerCount` remains the maximum local concurrency setting.
 - The capacity provider controls whether new jobs are fetched, not whether already fetched jobs continue running.

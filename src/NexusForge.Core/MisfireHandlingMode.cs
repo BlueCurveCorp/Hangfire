@@ -1,0 +1,51 @@
+// This file is part of Hangfire.
+// Copyright © 2021 NexusForge OÜ.
+// 
+// Hangfire is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Lesser General Public License as 
+// published by the Free Software Foundation, either version 3 
+// of the License, or any later version.
+// 
+// NexusForge is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU Lesser General Public License for more details.
+// 
+// You should have received a copy of the GNU Lesser General Public 
+// License along with Hangfire. If not, see <http://www.gnu.org/licenses/>.
+//
+//
+// This file is part of NexusForge, a fork of Hangfire.
+// NexusForge is licensed under the GNU Lesser General Public License v3 (or later).
+// See the LICENSE file in the project root for more information.
+
+namespace NexusForge
+{
+    /// <summary>
+    /// Specifies how to handle missed schedule when processing server was
+    /// inactive.
+    /// </summary>
+    public enum MisfireHandlingMode
+    {
+        /// <summary>
+        /// Default mode. Specifies that only a single background job will
+        /// be created, no matter how many occurrences were missed. The "Time"
+        /// parameter for the background job will point to the time background
+        /// job was scheduled.
+        /// </summary>
+        Relaxed = 0,
+
+        /// <summary>
+        /// Specifies that new background job will be created for every missed
+        /// occurrence, with "Time" parameter set to the corresponding schedule
+        /// time. 
+        /// </summary>
+        Strict  = 1,
+
+        /// <summary>
+        /// Specifies that no background jobs should be created on missed schedule,
+        /// regardless the number of missed occurrences.
+        /// </summary>
+        Ignorable = 2,
+    }
+}

@@ -2,7 +2,7 @@
 
 ## Summary
 
-Hangfire SQL Server storage currently uses SQL Server application locks for distributed coordination. These locks are logical resource names acquired with `sp_getapplock` and released with `sp_releaseapplock`. In a multi-tenant deployment, tenant-owned work should not contend with unrelated tenant-owned work only because both tenants use the same logical resource name.
+NexusForge SQL Server storage currently uses SQL Server application locks for distributed coordination. These locks are logical resource names acquired with `sp_getapplock` and released with `sp_releaseapplock`. In a multi-tenant deployment, tenant-owned work should not contend with unrelated tenant-owned work only because both tenants use the same logical resource name.
 
 This specification introduces explicit tenant-aware lock resource formatting while preserving the existing SQL Server application lock mechanism. The goal is to scope tenant-owned locks to a tenant when the operation is tenant-owned, while keeping scheduler, schema, expiration, aggregation, and other storage-wide coordination locks global.
 
@@ -30,17 +30,17 @@ This specification introduces explicit tenant-aware lock resource formatting whi
 SQL Server storage calls `AcquireDistributedLock(resource, timeout)` and prefixes the resource with the storage schema name:
 
 ```text
-HangFire:<resource>
+NexusForge:<resource>
 ```
 
 Examples:
 
 ```text
-HangFire:locks:schedulepoller
-HangFire:lock:recurring-job:nightly-cleanup
-HangFire:job:123:state-lock
-HangFire:List:Lock
-HangFire:List:recurring-jobs:Lock
+NexusForge:locks:schedulepoller
+NexusForge:lock:recurring-job:nightly-cleanup
+NexusForge:job:123:state-lock
+NexusForge:List:Lock
+NexusForge:List:recurring-jobs:Lock
 ```
 
 The SQL lock owner is the SQL session. Each `SqlServerConnection` creates a dedicated SQL connection when it first acquires a distributed lock. The same `SqlServerConnection` tracks locally acquired resources, so acquiring the same resource twice on the same connection is reentrant and only releases the SQL lock after the last local holder is disposed.
@@ -52,8 +52,8 @@ This is safe for single-tenant storage-wide coordination, but it can create unne
 Introduce an explicit lock resource formatter with two scopes:
 
 ```text
-Global: HangFire:<resource>
-Tenant: HangFire:tenant:<tenantId>:<resource>
+Global: NexusForge:<resource>
+Tenant: NexusForge:tenant:<tenantId>:<resource>
 ```
 
 The formatter must not alter the SQL Server application lock mechanism. It only changes the resource string passed to `sp_getapplock`.
@@ -166,13 +166,13 @@ Tenant-aware scope should use `TenantLockFallbackMode.Throw` by default. Falling
 
 ## Tenant Context
 
-`HangfireTenantContext.CurrentTenantId` is an ambient context and may be useful at some call sites, but the lock formatter should not blindly read it for all locks. Ambient tenant context is safe only when the call site is already known to be tenant-owned.
+`NexusForgeTenantContext.CurrentTenantId` is an ambient context and may be useful at some call sites, but the lock formatter should not blindly read it for all locks. Ambient tenant context is safe only when the call site is already known to be tenant-owned.
 
 Workers should set tenant context while performing a tenant-fetched job. This lets tenant-owned job filters, including `DisableConcurrentExecution`, acquire tenant-scoped locks without requiring every filter to parse queue metadata.
 
 Recommended worker behavior:
 
-- If a worker was configured with `BackgroundJobServerOptions.TenantId`, set `HangfireTenantContext` during job performance and server filter execution.
+- If a worker was configured with `BackgroundJobServerOptions.TenantId`, set `NexusForgeTenantContext` during job performance and server filter execution.
 - If a future worker mode can process jobs from multiple tenants, set tenant context from the fetched job or job parameter tenant identity instead of the server option.
 - Clear/restore the previous tenant context after the job finishes.
 - Do not set tenant context for global workers.
@@ -195,8 +195,8 @@ Current logical resources:
 Tenant-aware examples:
 
 ```text
-HangFire:tenant:tenant-a:MyService.Import
-HangFire:tenant:tenant-b:MyService.Import
+NexusForge:tenant:tenant-a:MyService.Import
+NexusForge:tenant:tenant-b:MyService.Import
 ```
 
 Tenant A and tenant B should be able to run the same `[DisableConcurrentExecution]` job concurrently. Two workers in tenant A should still contend.
@@ -209,7 +209,7 @@ Job state changes use:
 job:<jobId>:state-lock
 ```
 
-Since job identifiers are globally unique in a shared Hangfire storage, tenant scoping is not required for correctness. Tenant scoping MAY be used when the tenant id is available, but it is not expected to improve contention significantly because different jobs already have different lock resources.
+Since job identifiers are globally unique in a shared NexusForge storage, tenant scoping is not required for correctness. Tenant scoping MAY be used when the tenant id is available, but it is not expected to improve contention significantly because different jobs already have different lock resources.
 
 This lock SHOULD remain global by default. Tenant-scoping adds complexity without meaningful contention reduction, and state changes or continuations may involve cross-tenant relationships unless those are explicitly forbidden elsewhere.
 
@@ -265,7 +265,7 @@ Schema locks protect physical database objects and migrations, not tenant-owned 
 Known resource patterns:
 
 ```text
-HangFire:SchemaLock
+NexusForge:SchemaLock
 <schema>:SchemaLock
 ```
 
@@ -418,9 +418,9 @@ Recommended format:
 Examples:
 
 ```text
-HangFire:tenant:tenant-a:MyService.Import
-HangFire:tenant:tenant-a:List:tenant-owned-key:Lock
-HangFire:locks:schedulepoller
+NexusForge:tenant:tenant-a:MyService.Import
+NexusForge:tenant:tenant-a:List:tenant-owned-key:Lock
+NexusForge:locks:schedulepoller
 ```
 
 If the formatter has to shorten a resource, it should preserve a readable prefix and append a stable hash of the full unshortened resource. The hash input must include schema, tenant id, scope, and logical resource.
@@ -522,7 +522,7 @@ Default behavior:
 - Multi-tenant deployments may configure the global option to `DistributedLockScope.Tenant`.
 - Individual attributes may set `Scope = DistributedLockScope.Global` for shared-resource jobs.
 - Individual attributes may set `Scope = DistributedLockScope.Tenant` when tenant scope is required regardless of the global default.
-- Tenant scope requires `HangfireTenantContext.CurrentTenantId` during job performance.
+- Tenant scope requires `NexusForgeTenantContext.CurrentTenantId` during job performance.
 - If tenant scope is requested and no tenant context exists, throw a clear exception.
 - If tenant scope is requested but storage does not support tenant-aware locks, use `TenantFallbackMode`.
 

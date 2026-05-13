@@ -9,9 +9,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\Hangfire.Core\Hangfire.Core.csproj" />
-    <ProjectReference Include="..\..\src\Hangfire.AspNetCore\Hangfire.AspNetCore.csproj" />
-    <ProjectReference Include="..\..\src\Hangfire.SqlServer\Hangfire.SqlServer.csproj" />
+    <ProjectReference Include="..\..\src\NexusForge.Core\NexusForge.Core.csproj" />
+    <ProjectReference Include="..\..\src\NexusForge.AspNetCore\NexusForge.AspNetCore.csproj" />
+    <ProjectReference Include="..\..\src\NexusForge.SqlServer\NexusForge.SqlServer.csproj" />
   </ItemGroup>
 
   <ItemGroup>

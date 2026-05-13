@@ -1,0 +1,106 @@
+// This file is part of Hangfire. Copyright © 2019 NexusForge OÜ.
+// 
+// Hangfire is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Lesser General Public License as 
+// published by the Free Software Foundation, either version 3 
+// of the License, or any later version.
+// 
+// NexusForge is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU Lesser General Public License for more details.
+// 
+// You should have received a copy of the GNU Lesser General Public 
+// License along with Hangfire. If not, see <http://www.gnu.org/licenses/>.
+//
+//
+// This file is part of NexusForge, a fork of Hangfire.
+// NexusForge is licensed under the GNU Lesser General Public License v3 (or later).
+// See the LICENSE file in the project root for more information.
+
+#if NETSTANDARD2_1 || NETCOREAPP3_0_OR_GREATER
+using System.Collections.Generic;
+using NexusForge.Annotations;
+using NexusForge.Dashboard;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Routing;
+using Microsoft.Extensions.DependencyInjection;
+using System;
+using System.Linq;
+
+namespace NexusForge
+{
+    public static class NexusForgeEndpointRouteBuilderExtensions
+    {
+        public static IEndpointConventionBuilder MapNexusForgeDashboard(
+            [NotNull] this IEndpointRouteBuilder endpoints,
+            [CanBeNull] DashboardOptions options = null,
+            [CanBeNull] JobStorage storage = null)
+        {
+            return MapNexusForgeDashboard(endpoints, "/nexusforge", options, storage);
+        }
+
+        public static IEndpointConventionBuilder MapNexusForgeDashboard(
+            [NotNull] this IEndpointRouteBuilder endpoints,
+            [NotNull] string pattern,
+            [CanBeNull] DashboardOptions options = null,
+            [CanBeNull] JobStorage storage = null)
+        {
+            if (endpoints == null) throw new ArgumentNullException(nameof(endpoints));
+            if (pattern == null) throw new ArgumentNullException(nameof(pattern));
+
+            var app = endpoints.CreateApplicationBuilder();
+
+            NexusForgeServiceCollectionExtensions.ThrowIfNotConfigured(app.ApplicationServices);
+
+            var services = app.ApplicationServices;
+
+            storage = storage ?? services.GetRequiredService<JobStorage>();
+            options = options ?? services.GetService<DashboardOptions>() ?? new DashboardOptions();
+            options.TimeZoneResolver = options.TimeZoneResolver ?? services.GetService<ITimeZoneResolver>();
+
+            var routes = app.ApplicationServices.GetRequiredService<Dashboard.RouteCollection>();
+
+            var pipeline = app
+                .UsePathBase(pattern)
+                .UseMiddleware<AspNetCoreDashboardMiddleware>(storage, options, routes, true)
+                .Build();
+
+            return endpoints.Map(pattern + "/{**path}", pipeline);
+        }
+
+        public static IEndpointConventionBuilder MapNexusForgeDashboardWithNoAuthorizationFilters(
+            [NotNull] this IEndpointRouteBuilder endpoints,
+            [NotNull] string pattern = "/nexusforge",
+            [CanBeNull] DashboardOptions options = null,
+            [CanBeNull] JobStorage storage = null)
+        {
+            if (endpoints == null) throw new ArgumentNullException(nameof(endpoints));
+
+            options = options ?? new DashboardOptions();
+
+            // We don't require the default LocalRequestsOnlyAuthorizationFilter since we provide our own policy
+            options.Authorization = Enumerable.Empty<IDashboardAuthorizationFilter>();
+            options.AsyncAuthorization = Enumerable.Empty<IDashboardAsyncAuthorizationFilter>();
+
+            return endpoints.MapNexusForgeDashboard(pattern, options, storage);
+        }
+
+        public static IEndpointConventionBuilder MapNexusForgeDashboardWithAuthorizationPolicy(
+            [NotNull] this IEndpointRouteBuilder endpoints,
+            [NotNull] string authorizationPolicyName,
+            [NotNull] string pattern = "/nexusforge",
+            [CanBeNull] DashboardOptions options = null,
+            [CanBeNull] JobStorage storage = null)
+        {
+            if (endpoints == null) throw new ArgumentNullException(nameof(endpoints));
+            if (authorizationPolicyName == null) throw new ArgumentNullException(nameof(authorizationPolicyName));
+
+            return endpoints
+                .MapNexusForgeDashboardWithNoAuthorizationFilters(pattern, options, storage)
+                .RequireAuthorization(authorizationPolicyName);
+        }
+    }
+}
+
+#endif

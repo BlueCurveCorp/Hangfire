@@ -18,18 +18,18 @@
         "resolved": "2.1.28",
         "contentHash": "ha49pzOEDmCPkMxwfPSR/wxa/6RD3r42TESIgpzpi7FXq/gNVUuJVEO+wtUzntNRhtmq3BKCl0s0aAlSZLkBUA=="
       },
-      "hangfire.core": {
+      "nexusforge.core": {
         "type": "Project",
         "dependencies": {
           "Cronos": "[0.11.1, )",
           "Newtonsoft.Json": "[13.0.3, )"
         }
       },
-      "hangfire.sqlserver": {
+      "nexusforge.sqlserver": {
         "type": "Project",
         "dependencies": {
           "Dapper": "[2.1.28, )",
-          "Hangfire.Core": "[1.0.0, )"
+          "NexusForge.Core": "[1.0.0, )"
         }
       }
     }
