@@ -1,0 +1,35 @@
+<Solution>
+  <Folder Name="/.nuget/">
+    <File Path=".nuget/packages.config" />
+  </Folder>
+  <Folder Name="/build/">
+    <File Path="appveyor.yml" />
+    <File Path="psake-project.ps1" />
+    <File Path="src/Directory.Build.props" />
+    <File Path="src/SharedAssemblyInfo.cs" />
+  </Folder>
+  <Folder Name="/content/">
+    <File Path="content/readme.txt" />
+  </Folder>
+  <Folder Name="/nuspecs/">
+    <File Path="nuspecs/NexusForge.AspNetCore.nuspec" />
+    <File Path="nuspecs/NexusForge.Core.nuspec" />
+    <File Path="nuspecs/NexusForge.NetCore.nuspec" />
+    <File Path="nuspecs/NexusForge.nuspec" />
+    <File Path="nuspecs/NexusForge.SqlServer.MSMQ.nuspec" />
+    <File Path="nuspecs/NexusForge.SqlServer.nuspec" />
+  </Folder>
+  <Folder Name="/samples/">
+    <Project Path="samples/ConsoleSample/ConsoleSample.csproj" />
+    <Project Path="samples/NetCoreSample/NetCoreSample.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <File Path="tests/Directory.Build.props" />
+    <Project Path="tests/NexusForge.Core.Tests/NexusForge.Core.Tests.csproj" />
+    <Project Path="tests/NexusForge.SqlServer.Tests/NexusForge.SqlServer.Tests.csproj" />
+  </Folder>
+  <Project Path="src/NexusForge.AspNetCore/NexusForge.AspNetCore.csproj" />
+  <Project Path="src/NexusForge.Core/NexusForge.Core.csproj" />
+  <Project Path="src/NexusForge.NetCore/NexusForge.NetCore.csproj" />
+  <Project Path="src/NexusForge.SqlServer/NexusForge.SqlServer.csproj" />
+</Solution>
