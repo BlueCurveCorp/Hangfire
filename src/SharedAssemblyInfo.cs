@@ -1,9 +1,9 @@
 using System.Reflection;
 using System.Runtime.InteropServices;
 
-[assembly: AssemblyProduct("Hangfire")]
-[assembly: AssemblyCompany("Hangfire OÜ")]
-[assembly: AssemblyCopyright("Copyright © 2013-2026 Hangfire OÜ")]
+[assembly: AssemblyProduct("NexusForge")]
+[assembly: AssemblyCompany("NexusForge OÜ")]
+[assembly: AssemblyCopyright("Copyright © 2013-2026 NexusForge OÜ")]
 [assembly: AssemblyCulture("")]
 
 [assembly: ComVisible(false)]

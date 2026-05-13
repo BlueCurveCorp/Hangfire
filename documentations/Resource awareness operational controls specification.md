@@ -4,7 +4,7 @@
 
 The current resource-awareness work lets each `BackgroundJobServer` decide whether it can fetch more jobs, publish allocation state through server metadata, expose that state in monitoring, and show it in the dashboard. This specification describes the next operational layer: dashboard-driven drain controls, resource history, queue availability summaries, Kubernetes shutdown integration, dashboard alerts, stronger built-in probes, and per-queue drain mode.
 
-The goal is to make resource awareness useful during real operations: deployments, maintenance, incidents, queue stalls, and platform shutdown. These features should preserve Hangfire's pull-based worker model. Servers still fetch jobs from queues, but operators and hosting integrations get better ways to pause intake, understand why work is not moving, and safely wind down nodes.
+The goal is to make resource awareness useful during real operations: deployments, maintenance, incidents, queue stalls, and platform shutdown. These features should preserve NexusForge's pull-based worker model. Servers still fetch jobs from queues, but operators and hosting integrations get better ways to pause intake, understand why work is not moving, and safely wind down nodes.
 
 ## Goals
 
@@ -20,7 +20,7 @@ The goal is to make resource awareness useful during real operations: deployment
 
 ## Non-Goals
 
-- Do not replace Hangfire's existing pull-based worker model with a central scheduler.
+- Do not replace NexusForge's existing pull-based worker model with a central scheduler.
 - Do not introduce hard global resource slot accounting.
 - Do not cancel or interrupt jobs that have already been fetched solely because a drain command or resource constraint appears.
 - Do not implement job-level resource requirements such as `[RequiresResource("gpu")]`.
@@ -106,7 +106,7 @@ commandId = generated id
 target = server instance id
 ```
 
-The command key is scoped to the full Hangfire server id. Since server ids are ephemeral, the first implementation drains the current server instance only. Node-level commands that target all instances on a host are explicitly deferred to a later design, because they can accidentally affect restarted or future workers.
+The command key is scoped to the full NexusForge server id. Since server ids are ephemeral, the first implementation drains the current server instance only. Node-level commands that target all instances on a host are explicitly deferred to a later design, because they can accidentally affect restarted or future workers.
 
 The `createdBy` field should be captured by default on a best-effort basis. ASP.NET Core hosts should use the current `ClaimsPrincipal` identity name when available. OWIN hosts should use the OWIN user identity when available. If no authenticated identity is available, `createdBy` should be null rather than blocking the command.
 
@@ -149,7 +149,7 @@ public interface IServerResourceCommandStorage
 }
 ```
 
-The exact implementation can use existing `JobStorageConnection` virtual methods instead of introducing a new public interface if that better matches Hangfire storage patterns.
+The exact implementation can use existing `JobStorageConnection` virtual methods instead of introducing a new public interface if that better matches NexusForge storage patterns.
 
 ### Compatibility
 
@@ -168,7 +168,7 @@ Reading the dashboard and mutating server intake are different privileges. The d
 
 ### Requirement
 
-Hangfire should record short-lived resource events that explain state transitions and durations.
+NexusForge should record short-lived resource events that explain state transitions and durations.
 
 Examples:
 
@@ -383,7 +383,7 @@ When `IHostApplicationLifetime.ApplicationStopping` fires:
 - Workers stop fetching new jobs.
 - Already fetched jobs continue until normal server shutdown rules stop them.
 - Server metadata is updated to show `Draining`.
-- The server continues heartbeating during graceful shutdown where existing Hangfire lifecycle permits.
+- The server continues heartbeating during graceful shutdown where existing NexusForge lifecycle permits.
 - The helper waits up to a configured timeout for processing jobs to finish, if the necessary processing tracking is available.
 
 ### API Direction
@@ -391,12 +391,12 @@ When `IHostApplicationLifetime.ApplicationStopping` fires:
 ASP.NET Core extension:
 
 ```csharp
-services.AddHangfireServer(options =>
+services.AddNexusForgeServer(options =>
 {
     options.Resource = resource;
 });
 
-services.AddHangfireResourceAwareShutdown(options =>
+services.AddNexusForgeResourceAwareShutdown(options =>
 {
     options.Resource = resource;
     options.Reason = "Kubernetes pod terminating";
@@ -407,7 +407,7 @@ services.AddHangfireResourceAwareShutdown(options =>
 Alternative option-based design:
 
 ```csharp
-services.AddHangfireServer(options =>
+services.AddNexusForgeServer(options =>
 {
     options.Resource = resource;
     options.DrainOnApplicationStopping = true;
@@ -415,7 +415,7 @@ services.AddHangfireServer(options =>
 });
 ```
 
-Recommended direction: implement the hosting integration in `Hangfire.NetCore`, because the host lifetime abstraction is part of .NET hosting rather than HTTP or MVC. `Hangfire.AspNetCore` can provide convenience wiring that delegates to the `Hangfire.NetCore` implementation.
+Recommended direction: implement the hosting integration in `NexusForge.NetCore`, because the host lifetime abstraction is part of .NET hosting rather than HTTP or MVC. `NexusForge.AspNetCore` can provide convenience wiring that delegates to the `NexusForge.NetCore` implementation.
 
 ### Kubernetes Guidance
 
@@ -427,8 +427,8 @@ terminationGracePeriodSeconds: 60
 
 And explain:
 
-- Hangfire should enter drain mode before the pod exits.
-- The grace period must be longer than typical job completion time, or jobs may still be requeued according to existing Hangfire behavior.
+- NexusForge should enter drain mode before the pod exits.
+- The grace period must be longer than typical job completion time, or jobs may still be requeued according to existing NexusForge behavior.
 - Drain mode prevents new fetches but does not guarantee every in-flight job finishes before Kubernetes kills the container.
 
 ### Observability
@@ -613,7 +613,7 @@ Behavior:
 
 ### Platform Notes
 
-Hangfire targets older .NET Framework and .NET Standard versions. Implementations must avoid raising target framework requirements.
+NexusForge targets older .NET Framework and .NET Standard versions. Implementations must avoid raising target framework requirements.
 
 Recommended strategy:
 
@@ -799,7 +799,7 @@ New DTOs can be introduced for queue availability and resource events if dashboa
 
 ### Kubernetes Grace Period Expires
 
-- Jobs still running when the platform terminates the process follow existing Hangfire guarantees.
+- Jobs still running when the platform terminates the process follow existing NexusForge guarantees.
 - Drain mode reduces new fetches but does not guarantee every job finishes before external termination.
 
 ## 10. Implementation Phasing
@@ -814,7 +814,7 @@ Recommended order:
 6. Extend remote commands to support `drain-queue` and `resume-queue`.
 7. Add short-lived resource history events and duration display.
 8. Add dashboard alerts based on current state and history.
-9. Add `Hangfire.NetCore` Kubernetes-friendly shutdown integration, plus `Hangfire.AspNetCore` convenience wiring.
+9. Add `NexusForge.NetCore` Kubernetes-friendly shutdown integration, plus `NexusForge.AspNetCore` convenience wiring.
 10. Improve built-in CPU and memory probes with platform-specific implementations.
 
 ## 11. Test Plan
@@ -879,5 +879,5 @@ Recommended order:
 - Resource events are exposed through public monitoring APIs.
 - Resource history retention defaults to 7 days and is configurable.
 - Queue availability is exposed through monitoring APIs. Dashboard-only computation is acceptable for prototypes but not the final supported design.
-- Kubernetes shutdown integration lives in `Hangfire.NetCore`, with `Hangfire.AspNetCore` convenience wiring.
+- Kubernetes shutdown integration lives in `NexusForge.NetCore`, with `NexusForge.AspNetCore` convenience wiring.
 - Built-in probes cover common, safe cases: CPU, process memory, system memory where reliable, disk free space, and composite checks. Specialized platform probes remain custom-provider territory.

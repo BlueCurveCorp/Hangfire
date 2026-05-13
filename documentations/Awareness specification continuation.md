@@ -4,7 +4,7 @@
 
 The first resource-awareness implementation adds a boolean server capacity gate through `IJobServerResource`, `BackgroundJobServerOptions.Resource`, worker fetch checks, and persisted `CanAllocate` server metadata. This continuation builds on that foundation to make resource awareness operationally useful: visible in the dashboard, explainable through reasons, controllable through drain mode, easier to configure with built-in providers, and measurable through monitoring.
 
-The continuation should preserve Hangfire's pull-based worker model. Workers still fetch from queues, but each server can publish richer capacity information and avoid fetching work when the local node should not accept more jobs.
+The continuation should preserve NexusForge's pull-based worker model. Workers still fetch from queues, but each server can publish richer capacity information and avoid fetching work when the local node should not accept more jobs.
 
 ## Goals
 
@@ -18,7 +18,7 @@ The continuation should preserve Hangfire's pull-based worker model. Workers sti
 
 ## Non-Goals
 
-- Do not replace Hangfire's pull-based worker model with central scheduling.
+- Do not replace NexusForge's pull-based worker model with central scheduling.
 - Do not introduce hard global cluster slot accounting in this continuation.
 - Do not require a SQL schema migration unless richer history storage is introduced later.
 - Do not stop or cancel jobs that have already been fetched only because the node becomes resource constrained.
@@ -100,7 +100,7 @@ The exact API shape can be adjusted during implementation, but it should support
 
 ### Requirement
 
-Hangfire should support a built-in drain mode where a server stops fetching new jobs while allowing already fetched jobs to complete normally.
+NexusForge should support a built-in drain mode where a server stops fetching new jobs while allowing already fetched jobs to complete normally.
 
 ### Behavior
 
@@ -230,9 +230,9 @@ Possible examples:
 - Workers only fetch or execute jobs compatible with the local server.
 - Dashboard and monitoring expose unmatched jobs and available capability capacity.
 
-### Current Hangfire Behavior
+### Current NexusForge Behavior
 
-Hangfire currently has a low-level fetched-job requeue mechanism through `IFetchedJob.Requeue()`. A worker uses this when an exception escapes while the fetched queue item still needs to be returned. Some storages also make fetched jobs visible again after timeout or when the worker shuts down before acknowledging completion.
+NexusForge currently has a low-level fetched-job requeue mechanism through `IFetchedJob.Requeue()`. A worker uses this when an exception escapes while the fetched queue item still needs to be returned. Some storages also make fetched jobs visible again after timeout or when the worker shuts down before acknowledging completion.
 
 However, the current worker flow does not provide a first-class scheduling decision where a server fetches a job, inspects its requirements, and then says "this node cannot handle this job, let another server take it." Resource awareness currently prevents fetching before `FetchNextJob` is called. Once a job is fetched and moved to `Processing`, the worker is expected to perform it or transition it through the existing state pipeline.
 
@@ -347,6 +347,6 @@ Metrics tests:
 ## Open Questions
 
 - Should drain mode be controlled only in-process, or should storage-backed remote drain commands be supported?
-- Should built-in CPU and memory providers live in `Hangfire.Core`, or in hosting-specific packages where runtime APIs are richer?
+- Should built-in CPU and memory providers live in `NexusForge.Core`, or in hosting-specific packages where runtime APIs are richer?
 - Should queue-level policy be part of `IJobServerResource`, or a separate interface to avoid complicating the current boolean contract?
-- How much historical resource data should Hangfire store by default?
+- How much historical resource data should NexusForge store by default?

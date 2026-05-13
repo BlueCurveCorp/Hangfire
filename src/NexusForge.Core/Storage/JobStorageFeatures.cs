@@ -1,0 +1,81 @@
+// This file is part of NexusForge.
+// Copyright © 2023 NexusForge OÜ.
+// 
+// NexusForge is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Lesser General Public License as 
+// published by the Free Software Foundation, either version 3 
+// of the License, or any later version.
+// 
+// NexusForge is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU Lesser General Public License for more details.
+// 
+// You should have received a copy of the GNU Lesser General Public 
+// License along with NexusForge. If not, see <http://www.gnu.org/licenses/>.
+
+using System;
+using System.Collections.Concurrent;
+using NexusForge.Annotations;
+
+namespace NexusForge.Storage
+{
+    public static class JobStorageFeatures
+    {
+        internal static readonly string TransactionalAcknowledgePrefix = "TransactionalAcknowledge:";
+
+        public static readonly string JobQueueProperty = "Job.Queue";
+        public static readonly string ExtendedApi = "Storage.ExtendedApi";
+        public static readonly string ProcessesInsteadOfComponents = "Storage.ProcessesInsteadOfComponents";
+
+        public static class Connection
+        {
+            public static readonly string GetUtcDateTime = "Connection.GetUtcDateTime";
+            public static readonly string GetSetContains = "Connection.GetSetContains";
+            public static readonly string LimitedGetSetCount = "Connection.GetSetCount.Limited";
+            public static readonly string ServerResourceCommands = "Connection.ServerResourceCommands";
+            public static readonly string TenantAwareQueueFetch = "Connection.TenantAwareQueueFetch";
+            public static readonly string TenantAwareDistributedLock = "Connection.TenantAwareDistributedLock";
+            public static readonly string PriorityAwareQueues = "Connection.PriorityAwareQueues";
+
+            public static readonly string BatchedGetFirstByLowest = "Connection.BatchedGetFirstByLowestScoreFromSet";
+        }
+
+        public static class Transaction
+        {
+            public static readonly string AcquireDistributedLock = "Transaction.AcquireDistributedLock";
+            public static readonly string TenantAwareDistributedLock = "Transaction.TenantAwareDistributedLock";
+
+            public static readonly string CreateJob = "Transaction.CreateJob";
+            public static readonly string SetJobParameter = "Transaction.SetJobParameter";
+            public static readonly string TenantAwareQueueEnqueue = "Transaction.TenantAwareQueueEnqueue";
+
+            private static readonly ConcurrentDictionary<Type, string> RemoveFromQueueFeatureCache = new(); 
+
+            public static string RemoveFromQueue(Type fetchedJobType)
+            {
+                return RemoveFromQueueFeatureCache.GetOrAdd(
+                    fetchedJobType,
+                    static type => TransactionalAcknowledgePrefix + type.Name);
+            }
+        }
+
+        public static class Monitoring
+        {
+            public static readonly string DeletedStateGraphs = "Monitoring.DeletedStateGraphs";
+            public static readonly string AwaitingJobs = "Monitoring.AwaitingJobs";
+            public static readonly string ResourceEvents = "Monitoring.ResourceEvents";
+            public static readonly string ResourceQueueAvailability = "Monitoring.ResourceQueueAvailability";
+            public static readonly string TenantAwareQueueMonitoring = "Monitoring.TenantAwareQueueMonitoring";
+            public static readonly string TenantAwareDashboard = "Monitoring.TenantAwareDashboard";
+            public static readonly string TenantAwareRecurringJobs = "Monitoring.TenantAwareRecurringJobs";
+        }
+
+        public static Exception GetNotSupportedException([NotNull] string featureId)
+        {
+            if (featureId == null) throw new ArgumentNullException(nameof(featureId));
+            return new NotSupportedException(
+                $"Current storage implementation does not support the '{featureId}' feature.");
+        }
+    }
+}

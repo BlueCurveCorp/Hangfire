@@ -2,13 +2,13 @@ using System;
 using System.Data;
 using System.Threading;
 using System.Threading.Tasks;
-using Hangfire;
-using Hangfire.Annotations;
-using Hangfire.Client;
-using Hangfire.Common;
-using Hangfire.Server;
-using Hangfire.SqlServer;
-using Hangfire.States;
+using NexusForge;
+using NexusForge.Annotations;
+using NexusForge.Client;
+using NexusForge.Common;
+using NexusForge.Server;
+using NexusForge.SqlServer;
+using NexusForge.States;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
@@ -49,15 +49,15 @@ namespace NetCoreSample
                     services.TryAddSingleton<IBackgroundJobStateChanger>(x => new CustomBackgroundJobStateChanger(
                             new BackgroundJobStateChanger(x.GetRequiredService<IJobFilterProvider>())));
 
-                    services.AddHangfire((provider, configuration) => configuration
+                    services.AddNexusForge((provider, configuration) => configuration
                         .SetDataCompatibilityLevel(CompatibilityLevel.Version_170)
                         .UseSimpleAssemblyNameTypeSerializer()
                         .UseSqlServerStorage(
-                            @"Server=.\;Database=Hangfire.Sample;Trusted_Connection=True;", 
+                            @"Server=.\;Database=NexusForge.Sample;Trusted_Connection=True;", 
                             provider.GetRequiredService<SqlServerStorageOptions>()));
 
                     services.AddHostedService<RecurringJobsService>();
-                    services.AddHangfireServer(options =>
+                    services.AddNexusForgeServer(options =>
                     {
                         options.StopTimeout = TimeSpan.FromSeconds(15);
                         options.ShutdownTimeout = TimeSpan.FromSeconds(30);

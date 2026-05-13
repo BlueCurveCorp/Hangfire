@@ -4,8 +4,8 @@ using System.ComponentModel;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using Hangfire;
-using Hangfire.States;
+using NexusForge;
+using NexusForge.States;
 
 namespace ConsoleSample
 {

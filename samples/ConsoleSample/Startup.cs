@@ -1,5 +1,5 @@
 using System;
-using Hangfire;
+using NexusForge;
 using Owin;
 
 namespace ConsoleSample
@@ -9,9 +9,9 @@ namespace ConsoleSample
         public void Configuration(IAppBuilder app)
         {
             app.UseErrorPage();
-            app.UseHangfireDashboard(String.Empty);
+            app.UseNexusForgeDashboard(String.Empty);
 
-            app.UseHangfireServer(new BackgroundJobServerOptions
+            app.UseNexusForgeServer(new BackgroundJobServerOptions
             {
                 Queues = new[] { "critical", "default" },
                 TaskScheduler = null,

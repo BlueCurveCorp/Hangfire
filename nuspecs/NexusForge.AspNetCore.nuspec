@@ -1,0 +1,72 @@
+<?xml version="1.0"?>
+<package>
+  <metadata>
+    <id>NexusForge.AspNetCore</id>
+    <version>%version%</version>
+    <title>NexusForge ASP.NET Core Support</title>
+    <authors>Sergey Odinokov</authors>
+    <owners>NexusForgeIO, odinserj</owners>
+    <projectUrl>https://www.nexusforge.io/</projectUrl>
+    <repository type="git" url="https://github.com/NexusForgeIO/NexusForge.git" commit="%commit%" />
+    <license type="file">LICENSE.md</license>
+    <icon>icon.png</icon>
+    <description>ASP.NET Core support for NexusForge, a background job framework for .NET applications.</description>
+    <copyright>Copyright © 2017-2026 NexusForge OÜ</copyright>
+    <tags>nexusforge aspnetcore</tags>
+    <releaseNotes><![CDATA[
+Release notes are available in our blog https://www.nexusforge.io/blog/
+Please see https://docs.nexusforge.io/en/latest/upgrade-guides/upgrading-to-nexusforge-1.8.html to learn how to upgrade.
+
+1.8.23
+• Fixed – `InvalidOperationException`: The request reached the end of the pipeline without executing the endpoint.
+
+1.8.22
+• Added – `MapNexusForgeDashboardWithNoAuthorizationFilters` method, which does not include local-only filters.
+• Changed – Set 404 status code when `MapNexusForgeDashboard` is used and no dispatcher is found.
+• Fixed – `InvalidOperationException` upon receiving a request for 'nexusforge/bootstrap.min.css.map'.
+
+1.8.18
+• Fixed – Swallow possible `ObjectDisposedException` in the `StopAsync` method.
+• Fixed – Avoid `NullReferenceException` when `LocalIpAddress` or `RemoteIpAddress` is null.
+
+1.8.10
+• Fixed – Don't check `HasStarted` in `Response.WriteAsync` to avoid breaking dispatchers.
+• Project – Enable NuGet package and DLL signing with a company certificate.
+• Project – Require NuGet package signature validation on restore for dependencies.
+• Project – Add `NexusForgeIO` as a package owner.
+
+1.8.9
+• Fixed – Don't attempt to write response headers when response has already started (by @maliming).
+• Project – Enable full source link support with embedded symbols and repository-based sources.
+• Project – Enable repeatable package restore using a lock file.
+
+1.8.0
+• Breaking – Make the package to be dependent on NexusForge.NetCore and use the same types.
+• Added – `IApplicationBuilder.UseNexusForgeServer` that accepts custom factory for `IBackgroundProcessingServer`.
+]]>
+    </releaseNotes>
+    <dependencies>
+      <group targetFramework="net10.0">
+        <dependency id="NexusForge.NetCore" version="[%version%]" />
+      </group>
+    </dependencies>
+    <frameworkReferences>
+      <group targetFramework="net10.0">
+        <frameworkReference name="Microsoft.AspNetCore.App" />
+      </group>
+    </frameworkReferences>
+  </metadata>
+  <files>
+    <file src="net10.0\NexusForge.AspNetCore.dll" target="lib\net10.0" />
+    <file src="net10.0\NexusForge.AspNetCore.xml" target="lib\net10.0" />
+
+    <file src="..\nuspecs\icon.png" />
+
+    <file src="LICENSE.md" />
+    <file src="COPYING" />
+    <file src="COPYING.LESSER" />
+    <file src="NOTICES" />
+    <file src="LICENSE_STANDARD" />
+    <file src="LICENSE_ROYALTYFREE" />
+  </files>
+</package>

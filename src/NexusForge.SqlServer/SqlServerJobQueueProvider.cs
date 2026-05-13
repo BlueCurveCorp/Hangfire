@@ -1,0 +1,45 @@
+// This file is part of NexusForge. Copyright © 2013-2014 NexusForge OÜ.
+// 
+// NexusForge is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Lesser General Public License as 
+// published by the Free Software Foundation, either version 3 
+// of the License, or any later version.
+// 
+// NexusForge is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU Lesser General Public License for more details.
+// 
+// You should have received a copy of the GNU Lesser General Public 
+// License along with NexusForge. If not, see <http://www.gnu.org/licenses/>.
+
+using System;
+using NexusForge.Annotations;
+
+namespace NexusForge.SqlServer
+{
+    internal sealed class SqlServerJobQueueProvider : IPersistentJobQueueProvider
+    {
+        private readonly IPersistentJobQueue _jobQueue;
+        private readonly IPersistentJobQueueMonitoringApi _monitoringApi;
+
+        public SqlServerJobQueueProvider([NotNull] SqlServerStorage storage, [NotNull] SqlServerStorageOptions options)
+        {
+            if (storage == null) throw new ArgumentNullException(nameof(storage));
+            if (options == null) throw new ArgumentNullException(nameof(options));
+
+            _jobQueue = new SqlServerJobQueue(storage, options);
+            _monitoringApi = new SqlServerJobQueueMonitoringApi(storage);
+        }
+
+        public IPersistentJobQueue GetJobQueue()
+        {
+            return _jobQueue;
+        }
+
+        public IPersistentJobQueueMonitoringApi GetJobQueueMonitoringApi()
+        {
+            return _monitoringApi;
+        }
+    }
+}

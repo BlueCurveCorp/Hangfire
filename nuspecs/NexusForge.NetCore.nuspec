@@ -1,0 +1,70 @@
+<?xml version="1.0"?>
+<package>
+  <metadata>
+    <id>NexusForge.NetCore</id>
+    <version>%version%</version>
+    <title>NexusForge .NET Core's Worker Service Support</title>
+    <authors>Sergey Odinokov</authors>
+    <owners>NexusForgeIO, odinserj</owners>
+    <projectUrl>https://www.nexusforge.io/</projectUrl>
+    <repository type="git" url="https://github.com/NexusForgeIO/NexusForge.git" commit="%commit%" />
+    <license type="file">LICENSE.md</license>
+    <icon>icon.png</icon>
+    <description>.NET Core's Worker Service host support for NexusForge, a background job framework for .NET applications.</description>
+    <copyright>Copyright © 2019-2026 NexusForge OÜ</copyright>
+    <tags>nexusforge netcore</tags>
+    <releaseNotes><![CDATA[
+Release notes are available in our blog https://www.nexusforge.io/blog/
+Please see https://docs.nexusforge.io/en/latest/upgrade-guides/upgrading-to-nexusforge-1.8.html to learn how to upgrade.
+
+1.8.10
+• Project – Enable NuGet package and DLL signing with a company certificate.
+• Project – Require NuGet package signature validation on restore for dependencies.
+• Project – Add `NexusForgeIO` as a package owner.
+
+1.8.9
+• Project – Enable full source link support with embedded symbols and repository-based sources.
+• Project – Enable repeatable package restore using a lock file.
+
+1.8.6
+• Fixed – Include assembly information to the NexusForge.NetCore assembly.
+
+1.8.4
+• Changed – Send the stop signal earlier in the shutdown pipeline when hosting in .NET Core 3.1 or higher.
+• Changed – Set processing server to null in hosted service to avoid `ObjectDisposedException`.
+• Fixed – Other `IHostedService` implementations can block NexusForge server from being stopped.
+      
+1.8.1
+• Fixed – Add `net461` target for NexusForge.NetCore package to avoid missing method exceptions.
+
+1.8.0
+• Added – `IApplicationBuilder.UseNexusForgeServer` that accepts custom factory for `IBackgroundProcessingServer`.
+• Added – `net451` and `netstandard1.3` targets for the package.
+• Changed – Use `netstandard2.1` target instead of `netcoreapp3.0` for the package.
+• Changed – Send the "stop" signal earlier when the host supports .NET Standard 2.1.
+• Changed – Don't throw `ObjectDisposedException` when hosted service is disposed twice.
+]]>
+    </releaseNotes>
+    <dependencies>
+      <group targetFramework="net10.0">
+        <dependency id="Microsoft.Extensions.DependencyInjection.Abstractions" version="8.0.2" />
+        <dependency id="Microsoft.Extensions.Hosting.Abstractions" version="8.0.1" />
+        <dependency id="Microsoft.Extensions.Logging.Abstractions" version="8.0.2" />
+        <dependency id="NexusForge.Core" version="[%version%]" />
+      </group>
+    </dependencies>
+  </metadata>
+  <files>
+    <file src="net10.0\NexusForge.NetCore.dll" target="lib\net10.0" />
+    <file src="net10.0\NexusForge.NetCore.xml" target="lib\net10.0" />
+
+    <file src="..\nuspecs\icon.png" />
+
+    <file src="LICENSE.md" />
+    <file src="COPYING" />
+    <file src="COPYING.LESSER" />
+    <file src="NOTICES" />
+    <file src="LICENSE_STANDARD" />
+    <file src="LICENSE_ROYALTYFREE" />
+  </files>
+</package>

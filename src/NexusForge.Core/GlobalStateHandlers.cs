@@ -1,0 +1,37 @@
+// This file is part of NexusForge. Copyright © 2013-2014 NexusForge OÜ.
+// 
+// NexusForge is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Lesser General Public License as 
+// published by the Free Software Foundation, either version 3 
+// of the License, or any later version.
+// 
+// NexusForge is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU Lesser General Public License for more details.
+// 
+// You should have received a copy of the GNU Lesser General Public 
+// License along with NexusForge. If not, see <http://www.gnu.org/licenses/>.
+
+using System.Collections.Generic;
+using NexusForge.States;
+
+namespace NexusForge
+{
+    public static class GlobalStateHandlers
+    {
+        static GlobalStateHandlers()
+        {
+            Handlers = new List<IStateHandler>
+            {
+                new SucceededState.Handler(),
+                new ScheduledState.Handler(),
+                new EnqueuedState.Handler(),
+                new DeletedState.Handler(),
+                new AwaitingState.Handler()
+            };
+        }
+
+        public static ICollection<IStateHandler> Handlers { get; }
+    }
+}
