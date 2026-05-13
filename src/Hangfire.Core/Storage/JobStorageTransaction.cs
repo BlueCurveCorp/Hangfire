@@ -101,6 +101,22 @@ namespace Hangfire.Storage
             throw JobStorageFeatures.GetNotSupportedException(JobStorageFeatures.Transaction.AcquireDistributedLock);
         }
 
+        public virtual void AcquireTenantDistributedLock([NotNull] string tenantId, [NotNull] string resource, TimeSpan timeout, TenantLockFallbackMode fallbackMode = TenantLockFallbackMode.Throw)
+        {
+            if (tenantId == null) throw new ArgumentNullException(nameof(tenantId));
+            if (String.IsNullOrWhiteSpace(resource)) throw new ArgumentNullException(nameof(resource));
+
+            TenantIdValidator.Validate(nameof(tenantId), tenantId);
+
+            if (fallbackMode == TenantLockFallbackMode.Global)
+            {
+                AcquireDistributedLock(resource, timeout);
+                return;
+            }
+
+            throw JobStorageFeatures.GetNotSupportedException(JobStorageFeatures.Transaction.TenantAwareDistributedLock);
+        }
+
         public virtual void RemoveFromQueue([NotNull] IFetchedJob fetchedJob)
         {
             throw JobStorageFeatures.GetNotSupportedException(JobStorageFeatures.Transaction.RemoveFromQueue(fetchedJob.GetType()));

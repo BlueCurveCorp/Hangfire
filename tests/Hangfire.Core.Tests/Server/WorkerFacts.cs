@@ -302,6 +302,39 @@ namespace Hangfire.Core.Tests.Server
         }
 
         [Fact]
+        public void Execute_SetsTenantContext_DuringPerformance_WhenWorkerHasTenantId()
+        {
+            _connection
+                .Setup(x => x.FetchNextJob("tenant-a", It.IsAny<QueueDescriptor[]>(), It.IsAny<CancellationToken>()))
+                .Returns(_fetchedJob.Object);
+
+            string tenantId = null;
+            _performer.Setup(x => x.Perform(It.IsAny<PerformContext>()))
+                .Callback(() => tenantId = HangfireTenantContext.CurrentTenantId);
+
+            var worker = CreateTenantWorker("tenant-a");
+
+            worker.Execute(_context.Object);
+
+            Assert.Equal("tenant-a", tenantId);
+            Assert.Null(HangfireTenantContext.CurrentTenantId);
+        }
+
+        [Fact]
+        public void Execute_DoesNotSetTenantContext_DuringPerformance_WhenWorkerIsGlobal()
+        {
+            string tenantId = "not-called";
+            _performer.Setup(x => x.Perform(It.IsAny<PerformContext>()))
+                .Callback(() => tenantId = HangfireTenantContext.CurrentTenantId);
+
+            var worker = CreateWorker();
+
+            worker.Execute(_context.Object);
+
+            Assert.Null(tenantId);
+        }
+
+        [Fact]
         public void Execute_DoesNotMoveAJob_ToTheFailedState_ButRequeuesIt_WhenProcessThrowsOperationCanceled_DuringShutdownOnly()
         {
             // Arrange
@@ -473,6 +506,19 @@ namespace Hangfire.Core.Tests.Server
                 resource,
                 TimeSpan.FromSeconds(5),
                 maxStateChangeAttempts,
+                TimeSpan.Zero);
+        }
+
+        private Worker CreateTenantWorker(string tenantId)
+        {
+            return new Worker(
+                tenantId,
+                new QueuePriorityCollection(_queues),
+                _performer.Object,
+                _stateChanger.Object,
+                null,
+                TimeSpan.FromSeconds(5),
+                10,
                 TimeSpan.Zero);
         }
 

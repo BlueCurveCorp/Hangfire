@@ -184,6 +184,16 @@ namespace Hangfire
             return configuration.Use(filter, static x => GlobalJobFilters.Filters.Add(x));
         }
 
+        public static IGlobalConfiguration<DisableConcurrentExecutionOptions> UseDisableConcurrentExecutionOptions(
+            [NotNull] this IGlobalConfiguration configuration,
+            [NotNull] DisableConcurrentExecutionOptions options)
+        {
+            if (configuration == null) throw new ArgumentNullException(nameof(configuration));
+            if (options == null) throw new ArgumentNullException(nameof(options));
+
+            return configuration.Use(options, DisableConcurrentExecutionOptions.SetCurrent);
+        }
+
         public static IGlobalConfiguration<TFilterProvider> UseFilterProvider<TFilterProvider>(
             [NotNull] this IGlobalConfiguration configuration, 
             [NotNull] TFilterProvider filterProvider)

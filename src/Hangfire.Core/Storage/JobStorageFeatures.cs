@@ -35,6 +35,7 @@ namespace Hangfire.Storage
             public static readonly string LimitedGetSetCount = "Connection.GetSetCount.Limited";
             public static readonly string ServerResourceCommands = "Connection.ServerResourceCommands";
             public static readonly string TenantAwareQueueFetch = "Connection.TenantAwareQueueFetch";
+            public static readonly string TenantAwareDistributedLock = "Connection.TenantAwareDistributedLock";
             public static readonly string PriorityAwareQueues = "Connection.PriorityAwareQueues";
 
             public static readonly string BatchedGetFirstByLowest = "Connection.BatchedGetFirstByLowestScoreFromSet";
@@ -43,6 +44,7 @@ namespace Hangfire.Storage
         public static class Transaction
         {
             public static readonly string AcquireDistributedLock = "Transaction.AcquireDistributedLock";
+            public static readonly string TenantAwareDistributedLock = "Transaction.TenantAwareDistributedLock";
 
             public static readonly string CreateJob = "Transaction.CreateJob";
             public static readonly string SetJobParameter = "Transaction.SetJobParameter";

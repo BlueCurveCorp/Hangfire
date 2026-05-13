@@ -34,6 +34,7 @@ namespace Hangfire.SqlServer
 
         private readonly SqlServerStorage _storage;
         private readonly SqlServerConnection _connection;
+        private readonly IDistributedLockResourceFormatter _lockResourceFormatter = new SqlServerDistributedLockResourceFormatter();
 
         private readonly SortedDictionary<long, List<Func<DbConnection, DbCommand>>> _jobCommands = new();
         private readonly SortedDictionary<string, List<Func<DbConnection, DbCommand>>> _counterCommands = new();
@@ -139,7 +140,20 @@ namespace Hangfire.SqlServer
         {
             if (String.IsNullOrWhiteSpace(resource)) throw new ArgumentNullException(nameof(resource));
 
-            var disposableLock = _connection.AcquireLock($"{_storage.SchemaName}:{resource}", timeout);
+            AcquireFormattedDistributedLock(_lockResourceFormatter.FormatGlobal(_storage.SchemaName, resource), timeout);
+        }
+
+        public override void AcquireTenantDistributedLock(string tenantId, string resource, TimeSpan timeout, TenantLockFallbackMode fallbackMode = TenantLockFallbackMode.Throw)
+        {
+            if (tenantId == null) throw new ArgumentNullException(nameof(tenantId));
+            if (String.IsNullOrWhiteSpace(resource)) throw new ArgumentNullException(nameof(resource));
+
+            AcquireFormattedDistributedLock(_lockResourceFormatter.FormatTenant(_storage.SchemaName, tenantId, resource), timeout);
+        }
+
+        private void AcquireFormattedDistributedLock(string resource, TimeSpan timeout)
+        {
+            var disposableLock = _connection.AcquireLock(resource, timeout);
             if (disposableLock.OwnLock)
             {
                 var command = SqlServerDistributedLock.CreateReleaseCommand(

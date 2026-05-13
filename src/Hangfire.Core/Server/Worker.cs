@@ -385,7 +385,12 @@ namespace Hangfire.Server
                     var latency = (DateTime.UtcNow - backgroundJob.CreatedAt).TotalMilliseconds;
                     var duration = Stopwatch.StartNew();
 
-                    var result = _performer.Perform(performContext);
+                    object result;
+                    using (_tenantId == null ? null : HangfireTenantContext.Use(_tenantId))
+                    {
+                        result = _performer.Perform(performContext);
+                    }
+
                     duration.Stop();
 
                     customData = new Dictionary<string, object>(performContext.Items);
