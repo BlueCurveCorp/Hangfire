@@ -34,6 +34,7 @@ namespace Hangfire.SqlServer
     internal sealed class SqlServerConnection : JobStorageConnection
     {
         private readonly SqlServerStorage _storage;
+        private readonly IDistributedLockResourceFormatter _lockResourceFormatter = new SqlServerDistributedLockResourceFormatter();
         private readonly Dictionary<string, HashSet<Guid>> _lockedResources = new Dictionary<string, HashSet<Guid>>();
 
         public SqlServerConnection([NotNull] SqlServerStorage storage)
@@ -64,7 +65,15 @@ namespace Hangfire.SqlServer
         public override IDisposable AcquireDistributedLock([NotNull] string resource, TimeSpan timeout)
         {
             if (String.IsNullOrWhiteSpace(resource)) throw new ArgumentNullException(nameof(resource));
-            return AcquireLock($"{_storage.SchemaName}:{resource}", timeout);
+            return AcquireLock(_lockResourceFormatter.FormatGlobal(_storage.SchemaName, resource), timeout);
+        }
+
+        public override IDisposable AcquireTenantDistributedLock(string tenantId, string resource, TimeSpan timeout, TenantLockFallbackMode fallbackMode = TenantLockFallbackMode.Throw)
+        {
+            if (tenantId == null) throw new ArgumentNullException(nameof(tenantId));
+            if (String.IsNullOrWhiteSpace(resource)) throw new ArgumentNullException(nameof(resource));
+
+            return AcquireLock(_lockResourceFormatter.FormatTenant(_storage.SchemaName, tenantId, resource), timeout);
         }
 
         public override IFetchedJob FetchNextJob(string[] queues, CancellationToken cancellationToken)

@@ -30,6 +30,8 @@ namespace Hangfire
             if (timeoutInSeconds < 0) throw new ArgumentException("Timeout argument value should be greater that zero.");
 
             TimeoutSec = timeoutInSeconds;
+            Scope = DistributedLockScope.Default;
+            TenantFallbackMode = TenantLockFallbackMode.Throw;
         }
         
         [JsonConstructor]
@@ -42,13 +44,22 @@ namespace Hangfire
         [CanBeNull]
         public string Resource { get; }
         public int TimeoutSec { get; }
+        public DistributedLockScope Scope { get; set; }
+        public TenantLockFallbackMode TenantFallbackMode { get; set; }
 
         public void OnPerforming(PerformingContext context)
         {
+            if (context == null) throw new ArgumentNullException(nameof(context));
+
             var resource = GetResource(context.BackgroundJob.Job);
             var timeout = TimeSpan.FromSeconds(TimeoutSec);
+            var scope = Scope == DistributedLockScope.Default
+                ? DisableConcurrentExecutionOptions.Current.DefaultScope
+                : Scope;
 
-            var distributedLock = context.Connection.AcquireDistributedLock(resource, timeout);
+            var distributedLock = scope == DistributedLockScope.Tenant
+                ? AcquireTenantLock(context, resource, timeout)
+                : context.Connection.AcquireDistributedLock(resource, timeout);
             context.Items["DistributedLock"] = distributedLock;
         }
 
@@ -61,6 +72,23 @@ namespace Hangfire
 
             var distributedLock = (IDisposable)value;
             distributedLock.Dispose();
+        }
+
+        private IDisposable AcquireTenantLock(PerformingContext context, string resource, TimeSpan timeout)
+        {
+            var tenantId = HangfireTenantContext.CurrentTenantId;
+            if (tenantId == null)
+            {
+                throw new InvalidOperationException("Tenant-scoped DisableConcurrentExecution requires HangfireTenantContext.CurrentTenantId to be set.");
+            }
+
+            var fallbackMode = TenantFallbackMode;
+            if (fallbackMode == TenantLockFallbackMode.Throw && Scope == DistributedLockScope.Default)
+            {
+                fallbackMode = DisableConcurrentExecutionOptions.Current.TenantFallbackMode;
+            }
+
+            return context.Connection.AcquireTenantDistributedLock(tenantId, resource, timeout, fallbackMode);
         }
 
         private string GetResource(Job job)

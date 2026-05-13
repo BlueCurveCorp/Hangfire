@@ -36,6 +36,20 @@ namespace Hangfire.Storage
         // Common
         public abstract IWriteOnlyTransaction CreateWriteTransaction();
         public abstract IDisposable AcquireDistributedLock(string resource, TimeSpan timeout);
+        public virtual IDisposable AcquireTenantDistributedLock(string tenantId, string resource, TimeSpan timeout, TenantLockFallbackMode fallbackMode = TenantLockFallbackMode.Throw)
+        {
+            if (tenantId == null) throw new ArgumentNullException(nameof(tenantId));
+            if (String.IsNullOrWhiteSpace(resource)) throw new ArgumentNullException(nameof(resource));
+
+            TenantIdValidator.Validate(nameof(tenantId), tenantId);
+
+            if (fallbackMode == TenantLockFallbackMode.Global)
+            {
+                return AcquireDistributedLock(resource, timeout);
+            }
+
+            throw JobStorageFeatures.GetNotSupportedException(JobStorageFeatures.Connection.TenantAwareDistributedLock);
+        }
 
         // Background jobs
         public abstract string CreateExpiredJob(Job job, IDictionary<string, string> parameters, DateTime createdAt, TimeSpan expireIn);

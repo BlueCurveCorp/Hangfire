@@ -26,6 +26,7 @@ namespace Hangfire.Storage
     {
         IWriteOnlyTransaction CreateWriteTransaction();
         IDisposable AcquireDistributedLock(string resource, TimeSpan timeout);
+        IDisposable AcquireTenantDistributedLock(string tenantId, string resource, TimeSpan timeout, TenantLockFallbackMode fallbackMode = TenantLockFallbackMode.Throw);
 
         string CreateExpiredJob(
             Job job, 

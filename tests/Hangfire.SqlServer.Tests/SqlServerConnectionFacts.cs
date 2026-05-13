@@ -197,6 +197,71 @@ namespace Hangfire.SqlServer.Tests
 
         [Theory, CleanDatabase]
         [InlineData(false), InlineData(true)]
+        public void AcquireTenantDistributedLock_AcquiresExclusiveApplicationLock_WithTenantResource(bool useMicrosoftDataSqlClient)
+        {
+            using (var sql = ConnectionUtils.CreateConnection(useMicrosoftDataSqlClient))
+            {
+                var storage = new SqlServerStorage(sql);
+
+                using (var connection = new SqlServerConnection(storage))
+                using (connection.AcquireTenantDistributedLock("tenant-a", "hello", TimeSpan.FromMinutes(5)))
+                {
+                    var lockMode = sql.Query<string>(
+                        $"select applock_mode('public', '{Constants.DefaultSchema}:tenant:tenant-a:hello', 'session')").Single();
+
+                    Assert.Equal("Exclusive", lockMode);
+                }
+            }
+        }
+
+        [Theory, CleanDatabase]
+        [InlineData(false), InlineData(true)]
+        public void AcquireTenantDistributedLock_AllowsDifferentTenants_ToUseSameResource(bool useMicrosoftDataSqlClient)
+        {
+            var storage = new Mock<SqlServerStorage>((Func<DbConnection>)(() => ConnectionUtils.CreateConnection(useMicrosoftDataSqlClient)));
+            storage.Setup(x => x.QueueProviders).Returns(_providers);
+
+            using (var connection1 = new SqlServerConnection(storage.Object))
+            using (var connection2 = new SqlServerConnection(storage.Object))
+            using (connection1.AcquireTenantDistributedLock("tenant-a", "exclusive", TimeSpan.Zero))
+            using (connection2.AcquireTenantDistributedLock("tenant-b", "exclusive", TimeSpan.Zero))
+            {
+                Assert.True(true);
+            }
+        }
+
+        [Theory, CleanDatabase]
+        [InlineData(false), InlineData(true)]
+        public void AcquireTenantDistributedLock_ContendsForSameTenantAndResource(bool useMicrosoftDataSqlClient)
+        {
+            var storage = new Mock<SqlServerStorage>((Func<DbConnection>)(() => ConnectionUtils.CreateConnection(useMicrosoftDataSqlClient)));
+            storage.Setup(x => x.QueueProviders).Returns(_providers);
+
+            using (var connection1 = new SqlServerConnection(storage.Object))
+            using (var connection2 = new SqlServerConnection(storage.Object))
+            using (connection1.AcquireTenantDistributedLock("tenant-a", "exclusive", TimeSpan.Zero))
+            {
+                Assert.Throws<DistributedLockTimeoutException>(
+                    () => connection2.AcquireTenantDistributedLock("tenant-a", "exclusive", TimeSpan.Zero));
+            }
+        }
+
+        [Theory, CleanDatabase]
+        [InlineData(false), InlineData(true)]
+        public void AcquireTenantDistributedLock_IsReentrant_FromTheSameConnection_OnTheSameTenantAndResource(bool useMicrosoftDataSqlClient)
+        {
+            UseConnection(connection =>
+            {
+                using (connection.AcquireTenantDistributedLock("tenant-a", "hello", TimeSpan.FromMinutes(5)))
+                using (connection.AcquireTenantDistributedLock("tenant-a", "hello", TimeSpan.FromMinutes(5)))
+                {
+                    Assert.True(true);
+                }
+            }, useMicrosoftDataSqlClient);
+        }
+
+        [Theory, CleanDatabase]
+        [InlineData(false), InlineData(true)]
         public void CreateExpiredJob_ThrowsAnException_WhenJobIsNull(bool useMicrosoftDataSqlClient)
         {
             UseConnection(connection =>

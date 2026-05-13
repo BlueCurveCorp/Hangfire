@@ -418,6 +418,202 @@ foreach (var queue in monitor.QueueAvailability())
 }
 ```
 
+**Tenant-aware distributed locks**
+
+SQL Server storage can now acquire distributed locks in either global or tenant scope. The existing `AcquireDistributedLock` behavior stays global, so current applications keep the same lock names and coordination behavior unless a tenant-aware call site is explicitly used.
+
+Tenant-scoped locks use the same SQL Server application lock primitive (`sp_getapplock`), but format the resource with tenant identity:
+
+```text
+Global: HangFire:<resource>
+Tenant: HangFire:tenant:<tenantId>:<resource>
+```
+
+This means two tenants can run the same tenant-owned critical section independently, while two workers for the same tenant still serialize on the same logical resource. Storage-wide locks such as delayed-job scheduling, expiration cleanup, schema maintenance, recurring-job scheduling and shared list/set/hash locks remain global.
+
+Tenant-aware distributed locks include:
+
+- Core storage APIs for tenant-scoped locks on `IStorageConnection` and `JobStorageTransaction`.
+- SQL Server support for tenant lock resource formatting, tenant id validation and SQL Server's 255-character resource limit.
+- Deterministic SHA-256 suffixes for long SQL Server application lock resource names.
+- Fail-closed fallback behavior when a storage provider does not support tenant-aware locks.
+- `DisableConcurrentExecutionAttribute` lock-scope options for tenant-owned jobs.
+- Worker-side `HangfireTenantContext` setup for servers configured with `BackgroundJobServerOptions.TenantId`.
+
+By default, `DisableConcurrentExecutionAttribute` remains global:
+
+```csharp
+public class ReportJobs
+{
+    [DisableConcurrentExecution(timeoutInSeconds: 60)]
+    public void RebuildSharedIndex()
+    {
+        // Still uses the global resource:
+        // HangFire:ReportJobs.RebuildSharedIndex
+    }
+}
+```
+
+Configure tenant-scoped `DisableConcurrentExecution` globally when most jobs on tenant workers protect tenant-owned state:
+
+```csharp
+GlobalConfiguration.Configuration
+    .UseSqlServerStorage("<connection string or its name>")
+    .UseDisableConcurrentExecutionOptions(new DisableConcurrentExecutionOptions
+    {
+        DefaultScope = DistributedLockScope.Tenant,
+        TenantFallbackMode = TenantLockFallbackMode.Throw
+    });
+```
+
+Run tenant-specific workers so Hangfire can set `HangfireTenantContext.CurrentTenantId` while performing jobs and server filters:
+
+```csharp
+services.AddHangfireServer(options =>
+{
+    options.TenantId = "tenant-a";
+    options.Queues = new QueuePriorityCollection
+    {
+        ["default"] = 1,
+        ["reports"] = 2
+    };
+});
+```
+
+With the tenant default enabled, this job serializes per tenant instead of across all tenants:
+
+```csharp
+public class TenantReportJobs
+{
+    [DisableConcurrentExecution(timeoutInSeconds: 120)]
+    public void GenerateMonthlyReport()
+    {
+        // tenant-a: HangFire:tenant:tenant-a:TenantReportJobs.GenerateMonthlyReport
+        // tenant-b: HangFire:tenant:tenant-b:TenantReportJobs.GenerateMonthlyReport
+    }
+}
+```
+
+Override individual jobs that protect shared resources and must remain globally serialized:
+
+```csharp
+public class SharedMaintenanceJobs
+{
+    [DisableConcurrentExecution(
+        timeoutInSeconds: 300,
+        Scope = DistributedLockScope.Global)]
+    public void RebuildSharedSearchIndex()
+    {
+        // Always uses the global lock, even when the default scope is tenant.
+    }
+}
+```
+
+You can also request tenant scope per job without changing the global default:
+
+```csharp
+public class TenantImportJobs
+{
+    [DisableConcurrentExecution(
+        timeoutInSeconds: 180,
+        Scope = DistributedLockScope.Tenant)]
+    public void ImportCustomers()
+    {
+        // Requires HangfireTenantContext.CurrentTenantId during performance.
+    }
+}
+```
+
+The SQL Server formatter preserves the resource casing it receives. `DisableConcurrentExecutionAttribute` custom resources keep their existing behavior: arguments are formatted into the resource template and the result is lowercased before the storage lock is acquired. The custom resource below is tenant-scoped when a tenant context is active:
+
+```csharp
+public class ExportJobs
+{
+    [DisableConcurrentExecution(
+        resource: "exports:{0}",
+        timeoutSec: 120,
+        Scope = DistributedLockScope.Tenant)]
+    public void ExportAccount(string accountId)
+    {
+        // For tenant-a and account 42:
+        // HangFire:tenant:tenant-a:exports:42
+    }
+}
+```
+
+When a storage provider does not support tenant-aware locks, the default behavior is to throw instead of silently skipping or broadening the lock. Use global fallback only as an explicit compatibility choice:
+
+```csharp
+GlobalConfiguration.Configuration
+    .UseDisableConcurrentExecutionOptions(new DisableConcurrentExecutionOptions
+    {
+        DefaultScope = DistributedLockScope.Tenant,
+        TenantFallbackMode = TenantLockFallbackMode.Global
+    });
+```
+
+Fallback can also be selected for a single job:
+
+```csharp
+public class CompatibilityJobs
+{
+    [DisableConcurrentExecution(
+        timeoutInSeconds: 60,
+        Scope = DistributedLockScope.Tenant,
+        TenantFallbackMode = TenantLockFallbackMode.Global)]
+    public void RunWithGlobalFallback()
+    {
+    }
+}
+```
+
+Low-level integrations can acquire tenant locks directly through the storage connection:
+
+```csharp
+using (var connection = JobStorage.Current.GetConnection())
+using (connection.AcquireTenantDistributedLock(
+    tenantId: "tenant-a",
+    resource: "imports:customers",
+    timeout: TimeSpan.FromSeconds(30)))
+{
+    RunTenantImport("tenant-a");
+}
+```
+
+Transactional lock acquisition is also available for storage providers that support distributed locks inside write transactions:
+
+```csharp
+using (var connection = JobStorage.Current.GetConnection())
+using (var transaction = connection.CreateWriteTransaction())
+{
+    transaction.AcquireTenantDistributedLock(
+        tenantId: "tenant-a",
+        resource: "imports:customers",
+        timeout: TimeSpan.FromSeconds(30));
+
+    transaction.SetRangeInHash(
+        "tenant-a:import-status",
+        new[]
+        {
+            new KeyValuePair<string, string>("state", "running"),
+            new KeyValuePair<string, string>("updatedAt", JobHelper.SerializeDateTime(DateTime.UtcNow))
+        });
+
+    transaction.Commit();
+}
+```
+
+For tenant-owned job creation paths, set the ambient tenant context explicitly so the job is enqueued for the intended tenant. Tenant workers configured with the same `TenantId` will set the context again while the job is performed:
+
+```csharp
+using (HangfireTenantContext.Use("tenant-a"))
+{
+    BackgroundJob.Enqueue(() => RunTenantOwnedJob());
+}
+```
+
+Use global locks for storage-wide or shared-state coordination. Tenant scope should be reserved for operations where the protected data is actually tenant-owned.
+
 Questions? Problems?
 ---------------------
 
