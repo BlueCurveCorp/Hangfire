@@ -1,7 +1,7 @@
-// This file is part of NexusForge.
+﻿// This file is part of Hangfire.
 // Copyright © 2021 NexusForge OÜ.
 // 
-// NexusForge is free software: you can redistribute it and/or modify
+// Hangfire is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Lesser General Public License as 
 // published by the Free Software Foundation, either version 3 
 // of the License, or any later version.
@@ -12,7 +12,7 @@
 // GNU Lesser General Public License for more details.
 // 
 // You should have received a copy of the GNU Lesser General Public 
-// License along with NexusForge. If not, see <http://www.gnu.org/licenses/>.
+// License along with Hangfire. If not, see <http://www.gnu.org/licenses/>.
 
 #if !NET451 && !NETSTANDARD1_3
 
